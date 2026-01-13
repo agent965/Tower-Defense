@@ -1,0 +1,58 @@
+# === UNITY CORE FOLDERS TO IGNORE ===
+[Ll]ibrary/
+Library/
+[Tt]emp/
+Temp/
+[Oo]bj/
+Obj/
+[Bb]uild*/
+Build/
+[Bb]uilds/
+Builds/
+[Ll]ogs/
+Logs/
+[Uu]ser[Ss]ettings/
+UserSettings/
+[Mm]emoryCaptures/
+MemoryCaptures/
+
+# === UNITY CACHE AND LOCAL FILES ===
+sysinfo.txt
+*.pidb
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.bak
+*.tmp
+
+# === IDE / TOOL FILES ===
+.vs/
+.vscode/
+.idea/
+.gradle/
+*.suo
+*.user
+*.userprefs
+*.csproj
+*.sln
+
+# === PACKAGE MANAGER CACHES ===
+Packages/com.unity.timeline/
+Packages/com.unity.textmeshpro/
+Packages/com.unity.collab-proxy/
+PackageCache/
+
+# === MISC ===
+*.apk
+*.aab
+*.dmg
+*.unitypackage
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# === KEEP THESE (important) ===
+!Assets/
+!Packages/
+!ProjectSettings/
