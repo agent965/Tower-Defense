@@ -1477,7 +1477,7 @@ MonoBehaviour:
   shieldMax: 0
   shieldCurrent: 0
   shieldBuyCost: 10
-  shieldCostMultiplier: 1.25
+  shieldCostMultiplier: 2
   shieldCostFlatIncrease: 0
   livesText: {fileID: 73142446}
   moneyText: {fileID: 1418210526}
