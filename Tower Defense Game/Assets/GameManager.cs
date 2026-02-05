@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -14,21 +14,22 @@ public class GameManager : MonoBehaviour
     [Header("Shield")]
     public int shieldMax = 0;
     public int shieldCurrent = 0;
+
+    [Header("Shield Cost")]
     public int shieldBuyCost = 100;
+    public float shieldCostMultiplier = 1.25f;   // change this to control scaling (ex: 1.15, 1.3, etc.)
+    public int shieldCostFlatIncrease = 0;        // optional: add a flat increase too (ex: 10). Leave 0 if not used.
 
-    [Header("Shield Recharge")]
-    public bool rechargeToFullBetweenWaves = true;
-    public int rechargeAmountPerWave = 2;
-
-    [Header("UI")]
-    public Text livesText;
-    public Text moneyText;
-    public Text shieldText;
+    [Header("UI (TextMeshPro)")]
+    public TMP_Text livesText;
+    public TMP_Text moneyText;
+    public TMP_Text shieldText;
 
     private bool gameOver = false;
 
     private void Awake()
     {
+        // Safe singleton
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -39,10 +40,10 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        UpdateUI();
+        RefreshUI();
     }
 
-    // Called when an enemy reaches the EndZone
+    // Enemy reached the end
     public void TakeBaseHit(int amount = 1)
     {
         if (gameOver) return;
@@ -58,63 +59,70 @@ public class GameManager : MonoBehaviour
             if (lives < 0) lives = 0;
 
             if (lives <= 0)
-            {
                 GameOver();
-            }
         }
 
-        UpdateUI();
+        RefreshUI();
     }
 
     public void AddMoney(int amount)
     {
         money += amount;
-        UpdateUI();
+        RefreshUI();
     }
 
     public bool SpendMoney(int amount)
     {
         if (money < amount) return false;
         money -= amount;
-        UpdateUI();
+        RefreshUI();
         return true;
     }
 
+    // Button calls this
     public void BuyShieldCapacity()
     {
-        if (!SpendMoney(shieldBuyCost)) return;
+        Debug.Log("BuyShieldCapacity() clicked");
+
+        if (!SpendMoney(shieldBuyCost))
+        {
+            Debug.Log("Not enough money to buy shield!");
+            return;
+        }
 
         shieldMax += 1;
-        shieldCurrent = Mathf.Min(shieldCurrent + 1, shieldMax);
-        shieldBuyCost = Mathf.RoundToInt(shieldBuyCost + 15f);
 
-        UpdateUI();
+        // Give 1 charge immediately when you buy capacity
+        shieldCurrent = Mathf.Min(shieldCurrent + 1, shieldMax);
+
+        // Increase cost for next time
+        shieldBuyCost = Mathf.RoundToInt(shieldBuyCost * shieldCostMultiplier) + shieldCostFlatIncrease;
+
+        RefreshUI();
     }
 
-    public void RechargeShieldBetweenWaves()
+    // Call this at end of each wave
+    public void RechargeShieldBetweenWaves(bool fullRecharge = true, int rechargeAmount = 2)
     {
         if (shieldMax <= 0) return;
 
-        if (rechargeToFullBetweenWaves)
-        {
+        if (fullRecharge)
             shieldCurrent = shieldMax;
-        }
         else
-        {
-            shieldCurrent = Mathf.Min(shieldCurrent + rechargeAmountPerWave, shieldMax);
-        }
+            shieldCurrent = Mathf.Min(shieldCurrent + rechargeAmount, shieldMax);
 
-        UpdateUI();
+        RefreshUI();
     }
 
-    void UpdateUI()
+    private void RefreshUI()
     {
+        // These guards prevent crashes if you forgot to drag a reference
         if (livesText != null) livesText.text = "Lives: " + lives;
         if (moneyText != null) moneyText.text = "Money: " + money;
-        if (shieldText != null) shieldText.text = "Shield: " + shieldCurrent + "/" + shieldMax + "  Cost: " + shieldBuyCost;
+        if (shieldText != null) shieldText.text = "Shield: " + shieldCurrent + "/" + shieldMax + "   Cost: " + shieldBuyCost;
     }
 
-    void GameOver()
+    private void GameOver()
     {
         gameOver = true;
         Debug.Log("GAME OVER");
