@@ -1,131 +1,139 @@
 using UnityEngine;
-using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance;
-
-    [Header("Lives")]
-    public int lives = 20;
-
-    [Header("Money")]
-    public int money = 200;
-
-    [Header("Shield")]
-    public int shieldMax = 0;
-    public int shieldCurrent = 0;
-
-    [Header("Shield Cost")]
-    public int shieldBuyCost = 100;
-    public float shieldCostMultiplier = 1.25f;   // change this to control scaling (ex: 1.15, 1.3, etc.)
-    public int shieldCostFlatIncrease = 0;        // optional: add a flat increase too (ex: 10). Leave 0 if not used.
-
-    [Header("UI (TextMeshPro)")]
-    public TMP_Text livesText;
-    public TMP_Text moneyText;
-    public TMP_Text shieldText;
-
-    private bool gameOver = false;
-
-    private void Awake()
+    public static GameManager Instance { get; private set; }
+    
+    [Header("Game State")]
+    public GameState gameState = GameState.Building;
+    
+    // other scripts can listen to state changes to do shit
+    public delegate void OnGameStateChanged(GameState newState);
+    public event OnGameStateChanged GameStateChanged;
+    
+    void Awake()
     {
-        // Safe singleton
-        if (Instance != null && Instance != this)
+        // singleton :)
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
         {
             Destroy(gameObject);
             return;
         }
-        Instance = this;
     }
-
-    private void Start()
+    
+    void Start()
     {
-        RefreshUI();
+        InitializeGame();
     }
-
-    // Enemy reached the end
-    public void TakeBaseHit(int amount = 1)
+    
+    void InitializeGame()
     {
-        if (gameOver) return;
-
-        if (shieldCurrent > 0)
+        SetGameState(GameState.Building);
+        Debug.Log("Game Initialized - Ready to Build");
+    }
+    
+    // game state management
+    public void SetGameState(GameState newState)
+    {
+        gameState = newState;
+        GameStateChanged?.Invoke(newState);
+        Debug.Log($"Game State Changed: {newState}");
+    }
+    
+    public bool IsBuilding()
+    {
+        return gameState == GameState.Building;
+    }
+    
+    public bool IsWaveActive()
+    {
+        return gameState == GameState.WaveActive;
+    }
+    
+    public bool IsGameOver()
+    {
+        return gameState == GameState.GameOver || gameState == GameState.Victory;
+    }
+    
+    // win/lose conditions
+    public void TriggerGameOver()
+    {
+        SetGameState(GameState.GameOver);
+        Time.timeScale = 0f; // Freeze game
+        Debug.Log("GAME OVER - You Lost!");
+        // our UI manager can listen to this state change to show game over screen
+    }
+    
+    public void TriggerVictory()
+    {
+        SetGameState(GameState.Victory);
+        Time.timeScale = 0f; // Freeze game
+        Debug.Log("VICTORY - You Won!");
+        // our UI manager can listen to this state change to show victory screen
+    }
+    
+    // pause controls
+    public void PauseGame()
+    {
+        if (!IsGameOver())
         {
-            shieldCurrent -= amount;
-            if (shieldCurrent < 0) shieldCurrent = 0;
+            Time.timeScale = 0f;
+            SetGameState(GameState.Paused);
         }
-        else
+    }
+    
+    public void ResumeGame()
+    {
+        if (gameState == GameState.Paused)
         {
-            lives -= amount;
-            if (lives < 0) lives = 0;
-
-            if (lives <= 0)
-                GameOver();
+            Time.timeScale = 1f;
+            SetGameState(GameState.Building);
         }
-
-        RefreshUI();
     }
-
-    public void AddMoney(int amount)
+    
+    public void TogglePause()
     {
-        money += amount;
-        RefreshUI();
-    }
-
-    public bool SpendMoney(int amount)
-    {
-        if (money < amount) return false;
-        money -= amount;
-        RefreshUI();
-        return true;
-    }
-
-    // Button calls this
-    public void BuyShieldCapacity()
-    {
-        Debug.Log("BuyShieldCapacity() clicked");
-
-        if (!SpendMoney(shieldBuyCost))
+        if (gameState == GameState.Paused)
         {
-            Debug.Log("Not enough money to buy shield!");
-            return;
+            ResumeGame();
         }
-
-        shieldMax += 1;
-
-        // Give 1 charge immediately when you buy capacity
-        shieldCurrent = Mathf.Min(shieldCurrent + 1, shieldMax);
-
-        // Increase cost for next time
-        shieldBuyCost = Mathf.RoundToInt(shieldBuyCost * shieldCostMultiplier) + shieldCostFlatIncrease;
-
-        RefreshUI();
+        else if (!IsGameOver())
+        {
+            PauseGame();
+        }
     }
-
-    // Call this at end of each wave
-    public void RechargeShieldBetweenWaves(bool fullRecharge = true, int rechargeAmount = 2)
+    
+    // scene management
+    public void RestartGame()
     {
-        if (shieldMax <= 0) return;
-
-        if (fullRecharge)
-            shieldCurrent = shieldMax;
-        else
-            shieldCurrent = Mathf.Min(shieldCurrent + rechargeAmount, shieldMax);
-
-        RefreshUI();
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
-
-    private void RefreshUI()
+    
+    public void LoadMainMenu()
     {
-        // These guards prevent crashes if you forgot to drag a reference
-        if (livesText != null) livesText.text = "Lives: " + lives;
-        if (moneyText != null) moneyText.text = "Money: " + money;
-        if (shieldText != null) shieldText.text = "Shield: " + shieldCurrent + "/" + shieldMax + "   Cost: " + shieldBuyCost;
+        Time.timeScale = 1f;
+        // SceneManager.LoadScene("MainMenu"); // uncomment when we have a main menu scene
     }
-
-    private void GameOver()
+    
+    public void QuitGame()
     {
-        gameOver = true;
-        Debug.Log("GAME OVER");
-        Time.timeScale = 0f;
+        Debug.Log("Quitting Game");
+        Application.Quit();
     }
+}
+
+// enum for different game states
+public enum GameState
+{
+    Building,      // Player place towers
+    WaveActive,    // Wave is in progress, enemies spawning
+    Paused,        // Game is paused
+    GameOver,      // Player lost (0 lives)
+    Victory        // Player won (survived all waves!!)
 }

@@ -8,7 +8,7 @@ public class PathManager : MonoBehaviour
     
     void Awake()
     {
-        // Singleton pattern
+        // Singleton so only one pathmanager exists!!
         if (Instance == null)
         {
             Instance = this;
@@ -24,7 +24,7 @@ public class PathManager : MonoBehaviour
     
     void LoadWaypoints()
     {
-        // Find all GameObjects with tag "Waypoint" and sort by name
+        // Find all GameObjects tagged as "Waypoint"
         GameObject[] waypointObjects = GameObject.FindGameObjectsWithTag("Waypoint");
         
         if (waypointObjects.Length == 0)
@@ -33,11 +33,11 @@ public class PathManager : MonoBehaviour
             return;
         }
         
-        // Sort waypoints by name (e.g., "Waypoint_0", "Waypoint_1", etc.)
+        // Sort waypoints by name alpheticaly
         System.Array.Sort(waypointObjects, (a, b) => 
             string.Compare(a.name, b.name, System.StringComparison.Ordinal));
         
-        // Extract transforms
+        // Extract transforms (basically the position) of each waypoint
         waypoints = new Transform[waypointObjects.Length];
         for (int i = 0; i < waypointObjects.Length; i++)
         {

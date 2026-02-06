@@ -12,7 +12,7 @@ public class Enemy : MonoBehaviour
     {
         currentHP = maxHP;
         
-        // Get waypoints from PathManager
+        // get waypoints from PathManager
         if (PathManager.Instance != null)
         {
             waypoints = PathManager.Instance.GetWaypoints();
