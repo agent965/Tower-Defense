@@ -8,6 +8,10 @@ public class Enemy : MonoBehaviour
     private Transform[] waypoints;
     private int currentWaypointIndex = 0;
     
+    // Event for when enemy is destroyed
+    public delegate void OnEnemyDestroyedDelegate();
+    public event OnEnemyDestroyedDelegate OnEnemyDestroyed;
+    
     void Start()
     {
         currentHP = maxHP;
@@ -62,12 +66,18 @@ public class Enemy : MonoBehaviour
     
     void Die()
     {
+        // Notify WaveManager that this enemy was destroyed
+        OnEnemyDestroyed?.Invoke();
+        
         // we can also add death effects, award currency, drop loot, whatever here after enemy dies
         Destroy(gameObject);
     }
     
     void ReachedEnd()
     {
+        // Notify WaveManager that this enemy was destroyed
+        OnEnemyDestroyed?.Invoke();
+        
         // we should add logic here for what happens when an enemy reaches the end here, so probably damaging the player base
         Destroy(gameObject);
     }

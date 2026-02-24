@@ -8,13 +8,13 @@ public class GameManager : MonoBehaviour
     [Header("Game State")]
     public GameState gameState = GameState.Building;
     
-    // other scripts can listen to state changes to do shit
+    // other scripts can listen to state changes
     public delegate void OnGameStateChanged(GameState newState);
     public event OnGameStateChanged GameStateChanged;
     
     void Awake()
     {
-        // singleton :)
+        // singleton
         if (Instance == null)
         {
             Instance = this;
@@ -60,30 +60,30 @@ public class GameManager : MonoBehaviour
         return gameState == GameState.GameOver || gameState == GameState.Victory;
     }
     
-    // win/lose conditions
+    // win/lose conditions - refactored to reduce duplication
     public void TriggerGameOver()
     {
-        SetGameState(GameState.GameOver);
-        Time.timeScale = 0f; // Freeze game
-        Debug.Log("GAME OVER - You Lost!");
-        // our UI manager can listen to this state change to show game over screen
+        EndGame(GameState.GameOver, "GAME OVER - You Lost!");
     }
     
     public void TriggerVictory()
     {
-        SetGameState(GameState.Victory);
-        Time.timeScale = 0f; // Freeze game
-        Debug.Log("VICTORY - You Won!");
-        // our UI manager can listen to this state change to show victory screen
+        EndGame(GameState.Victory, "VICTORY - You Won!");
     }
     
-    // pause controls
+    private void EndGame(GameState endState, string message)
+    {
+        SetGameState(endState);
+        Time.timeScale = 0f; // Freeze game
+        Debug.Log(message);
+    }
+    
+    // pause controls - refactored
     public void PauseGame()
     {
         if (!IsGameOver())
         {
-            Time.timeScale = 0f;
-            SetGameState(GameState.Paused);
+            SetTimeScale(0f, GameState.Paused);
         }
     }
     
@@ -91,9 +91,14 @@ public class GameManager : MonoBehaviour
     {
         if (gameState == GameState.Paused)
         {
-            Time.timeScale = 1f;
-            SetGameState(GameState.Building);
+            SetTimeScale(1f, GameState.Building);
         }
+    }
+    
+    private void SetTimeScale(float scale, GameState newState)
+    {
+        Time.timeScale = scale;
+        SetGameState(newState);
     }
     
     public void TogglePause()
@@ -108,17 +113,22 @@ public class GameManager : MonoBehaviour
         }
     }
     
-    // scene management
+    // scene management - refactored
     public void RestartGame()
     {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        ResetTimeAndLoadScene(SceneManager.GetActiveScene().name);
     }
     
     public void LoadMainMenu()
     {
+        ResetTimeAndLoadScene("MainMenu"); // uncomment when you have a main menu scene
+        // For now, this won't work without a MainMenu scene
+    }
+    
+    private void ResetTimeAndLoadScene(string sceneName)
+    {
         Time.timeScale = 1f;
-        // SceneManager.LoadScene("MainMenu"); // uncomment when we have a main menu scene
+        SceneManager.LoadScene(sceneName);
     }
     
     public void QuitGame()
@@ -131,7 +141,7 @@ public class GameManager : MonoBehaviour
 // enum for different game states
 public enum GameState
 {
-    Building,      // Player place towers
+    Building,      // Player places towers
     WaveActive,    // Wave is in progress, enemies spawning
     Paused,        // Game is paused
     GameOver,      // Player lost (0 lives)
