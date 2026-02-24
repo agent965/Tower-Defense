@@ -73,12 +73,14 @@ public class Enemy : MonoBehaviour
         Destroy(gameObject);
     }
     
-    void ReachedEnd()
+    public void ReachedEnd()
     {
         // Notify WaveManager that this enemy was destroyed
         OnEnemyDestroyed?.Invoke();
         
         // we should add logic here for what happens when an enemy reaches the end here, so probably damaging the player base
+
         Destroy(gameObject);
+        HealthManager.Instance.LoseLife(1);
     }
 }

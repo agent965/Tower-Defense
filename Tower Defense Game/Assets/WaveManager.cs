@@ -8,6 +8,7 @@ public class WaveManager : MonoBehaviour
     
     [Header("Wave Settings")]
     public int currentWave = 0;
+    public int totalWaves = 10;
     public int enemiesPerWave = 5;
     public float enemiesIncreasePerWave = 2f; // how many more enemies each wave
     public float timeBetweenSpawns = 1f;
