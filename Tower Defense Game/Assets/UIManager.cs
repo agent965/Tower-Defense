@@ -64,6 +64,7 @@ public class UIManager : MonoBehaviour
     
     void UpdateHealthUI(int newHealth)
     {
+        Debug.Log($"UIManager: Updating Health UI to {newHealth}");
         if (HealthText != null)
         {
             HealthText.text = $"Health: {newHealth}";
