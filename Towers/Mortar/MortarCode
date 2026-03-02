@@ -1,0 +1,131 @@
+using System.Collections;
+using UnityEngine;
+
+public class MortarTower : MonoBehaviour
+{
+    public enum TowerLevel { Level1, Level2 }
+    public TowerLevel currentLevel = TowerLevel.Level1;
+
+    [Header("Renderer")]
+    public SpriteRenderer spriteRenderer;
+
+    [Header("Level 1 Animations")]
+    public Sprite[] level1Idle;
+    public Sprite[] level1Shoot;
+    public Sprite[] level1Reload;
+
+    [Header("Level 2 Animations")]
+    public Sprite[] level2Idle;
+    public Sprite[] level2Shoot;
+    public Sprite[] level2Reload;
+
+    [Header("Projectile Prefabs")]
+    public GameObject level1ProjectilePrefab;
+    public GameObject level2ProjectilePrefab;
+
+    [Header("Fire Settings")]
+    public Transform firePoint;
+    public float idleFrameRate = 0.2f;
+    public float shootFrameRate = 0.1f;
+    public float reloadFrameRate = 0.15f;
+    public float attackCooldown = 2f;
+
+    private Sprite[] currentIdle;
+    private Sprite[] currentShoot;
+    private Sprite[] currentReload;
+
+    private bool isAttacking = false;
+    private Coroutine idleRoutine;
+
+    void Start()
+    {
+        SetLevel(currentLevel);
+        idleRoutine = StartCoroutine(PlayLooping(currentIdle, idleFrameRate));
+    }
+
+    public void SetLevel(TowerLevel level)
+    {
+        currentLevel = level;
+
+        if (level == TowerLevel.Level1)
+        {
+            currentIdle = level1Idle;
+            currentShoot = level1Shoot;
+            currentReload = level1Reload;
+        }
+        else
+        {
+            currentIdle = level2Idle;
+            currentShoot = level2Shoot;
+            currentReload = level2Reload;
+        }
+    }
+
+    public void Attack(Vector3 targetPosition)
+    {
+        if (!isAttacking)
+        {
+            StartCoroutine(AttackRoutine(targetPosition));
+        }
+    }
+
+    IEnumerator AttackRoutine(Vector3 target)
+    {
+        isAttacking = true;
+
+        if (idleRoutine != null)
+            StopCoroutine(idleRoutine);
+
+        yield return StartCoroutine(PlayOnce(currentShoot, shootFrameRate));
+
+        FireProjectiles(target);
+
+        yield return StartCoroutine(PlayOnce(currentReload, reloadFrameRate));
+
+        idleRoutine = StartCoroutine(PlayLooping(currentIdle, idleFrameRate));
+
+        yield return new WaitForSeconds(attackCooldown);
+        isAttacking = false;
+    }
+
+    void FireProjectiles(Vector3 target)
+    {
+        if (currentLevel == TowerLevel.Level1)
+        {
+            SpawnProjectile(level1ProjectilePrefab, target);
+        }
+        else if (currentLevel == TowerLevel.Level2)
+        {
+            // Level 2 fires BOTH projectile types
+            SpawnProjectile(level1ProjectilePrefab, target);
+            SpawnProjectile(level2ProjectilePrefab, target);
+        }
+    }
+
+    void SpawnProjectile(GameObject prefab, Vector3 target)
+    {
+        GameObject proj = Instantiate(prefab, firePoint.position, Quaternion.identity);
+        proj.GetComponent<MortarProjectile>().Initialize(target);
+    }
+
+    IEnumerator PlayLooping(Sprite[] frames, float rate)
+    {
+        int index = 0;
+
+        while (true)
+        {
+            spriteRenderer.sprite = frames[index];
+            index = (index + 1) % frames.Length;
+            yield return new WaitForSeconds(rate);
+        }
+    }
+
+    IEnumerator PlayOnce(Sprite[] frames, float rate)
+    {
+        for (int i = 0; i < frames.Length; i++)
+        {
+            spriteRenderer.sprite = frames[i];
+            yield return new WaitForSeconds(rate);
+        }
+    }
+}
