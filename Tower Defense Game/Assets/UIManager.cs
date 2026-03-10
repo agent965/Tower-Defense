@@ -14,7 +14,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI EnemiesText;
     
     [Header("UI Buttons")]
-    public GameObject BuyShield; // Button or panel for buying shield
+    public Button BuyShieldButton; // Button or panel for buying shield
     public Button StartWaveButton; // Button to start wave
     
     void Awake()
@@ -41,6 +41,21 @@ public class UIManager : MonoBehaviour
         {
             Debug.LogError("UIManager: HealthManager.Instance is null!");
         }
+        //Subscribe to gold changes
+        if (EconomyManager.Instance != null)
+        {
+            EconomyManager.Instance.GoldChanged += UpdateMoneyUI;
+        } else
+        {
+            Debug.LogError("UIManager: EconomyManager.Instance is null!");
+        }
+        // Subscribe to shield changes
+        if (HealthManager.Instance != null)
+            HealthManager.Instance.ShieldChanged += UpdateShieldUI;
+        else
+            Debug.LogError("UIManager: HealthManager.Instance is null!");
+        if (BuyShieldButton != null)
+            BuyShieldButton.onClick.AddListener(OnBuyShieldButtonClicked);
         
         // Subscribe to game state changes
         if (GameManager.Instance != null)
@@ -57,6 +72,19 @@ public class UIManager : MonoBehaviour
         {
             StartWaveButton.onClick.AddListener(OnStartWaveButtonClicked);
         }
+
+        // Initialize economy and shield display
+        if (EconomyManager.Instance != null)
+        {
+            EconomyManager.Instance.GoldChanged += UpdateMoneyUI;
+            UpdateMoneyUI(EconomyManager.Instance.GetCurrentGold());
+        }
+
+        if (HealthManager.Instance != null)
+        {
+            HealthManager.Instance.ShieldChanged += UpdateShieldUI;
+            UpdateShieldUI(HealthManager.Instance.GetCurrentShields());
+        }
         
         // Initialize wave display
         UpdateWaveUI();
@@ -70,7 +98,20 @@ public class UIManager : MonoBehaviour
             HealthText.text = $"Health: {newHealth}";
         }
     }
-    
+
+
+    void UpdateMoneyUI(int newGold)
+    {
+        if (MoneyText != null)
+            MoneyText.text = $"Gold: {newGold}";
+    }
+
+    void UpdateShieldUI(int newShields)
+    {
+        if (ShieldText != null)
+            ShieldText.text = $"Shields: {newShields}";
+    }
+        
     void OnStartWaveButtonClicked()
     {
         if (WaveManager.Instance != null)
@@ -78,7 +119,10 @@ public class UIManager : MonoBehaviour
             WaveManager.Instance.StartWave();
         }
     }
-    
+    void OnBuyShieldButtonClicked()
+    {
+        HealthManager.Instance.BuyShield();
+    }
     void OnGameStateChanged(GameState newState)
     {
         UpdateButtonVisibility(newState);

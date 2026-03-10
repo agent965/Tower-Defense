@@ -37,10 +37,40 @@ public class HealthManager : MonoBehaviour
         LivesChanged?.Invoke(currentLives);
         Debug.Log($"Lives Initialized: {currentLives}");
     }
+    [Header("Shield Settings")]
+public int maxShields = 1;
+private int currentShields = 0;
+
+public delegate void OnShieldChanged(int newShields);
+public event OnShieldChanged ShieldChanged;
+public int shieldCost = 75;
+
+public void BuyShield()
+{
+    if (currentShields >= maxShields)
+    {
+        Debug.Log("Already at max shields!");
+        return;
+    }
+
+    if (EconomyManager.Instance.SpendGold(shieldCost))
+    {
+        currentShields++;
+        ShieldChanged?.Invoke(currentShields);
+        Debug.Log($"Shield purchased! Shields: {currentShields}");
+    }
+}
 
     // lives management
     public void LoseLife(int amount = 1)
     {
+        if (currentShields > 0)
+        {
+            currentShields--;
+            ShieldChanged?.Invoke(currentShields);
+            Debug.Log($"Shield absorbed the hit! Shields remaining: {currentShields}");
+            return;
+        }
         currentLives -= amount;
         LivesChanged?.Invoke(currentLives);
         
@@ -71,6 +101,11 @@ public class HealthManager : MonoBehaviour
     public int GetCurrentLives()
     {
         return currentLives;
+    }
+
+    public int GetCurrentShields()
+    {
+        return currentShields;
     }
     
     public int GetMaxLives()

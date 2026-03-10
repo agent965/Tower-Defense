@@ -78,9 +78,10 @@ public class Enemy : MonoBehaviour
         // Notify WaveManager that this enemy was destroyed
         OnEnemyDestroyed?.Invoke();
         
-        // we should add logic here for what happens when an enemy reaches the end here, so probably damaging the player base
+        // we should add logic here for what happens when an enemy reaches the end here, so probably damaging the player base & money
 
         Destroy(gameObject);
         HealthManager.Instance.LoseLife(1);
+        EconomyManager.Instance.AwardKillGold();
     }
 }
