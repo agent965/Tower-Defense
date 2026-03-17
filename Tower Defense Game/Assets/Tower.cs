@@ -101,7 +101,7 @@ public class Tower : MonoBehaviour
 
         HomingProjectile homing = proj.AddComponent<HomingProjectile>();
         homing.speed = (float)prjSpd;
-        homing.SetTarget(target);
+        homing.SetTarget(target, dmg);
     }
 
     private void CreateBasicProjectile(float angle)
@@ -109,10 +109,7 @@ public class Tower : MonoBehaviour
         GameObject proj = Create2DSquare();
 
         BasicProjectile basic = proj.AddComponent<BasicProjectile>();
-        basic.SetAttributes(angle, (float)prjSpd, 10f, transform.position, dmg, prc);
-
-        //(double damage, int pierce, float range, double projectileSpeed, double attackCooldown, double buyValue, double sellValue, int multiShot, bool facesTarget)
-        //tower.init_Tower(2, 2, 4.0f, 7, 2, 2, 2, 0, false);
+        basic.SetAttributes(angle, (float)prjSpd, rng, transform.position, dmg, prc);
     }
 
     private GameObject Create2DSquare()

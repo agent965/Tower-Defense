@@ -68,20 +68,21 @@ public class Enemy : MonoBehaviour
     {
         // Notify WaveManager that this enemy was destroyed
         OnEnemyDestroyed?.Invoke();
-        
-        // we can also add death effects, award currency, drop loot, whatever here after enemy dies
+
+        if (EconomyManager.Instance != null)
+            EconomyManager.Instance.AwardKillGold();
+
         Destroy(gameObject);
     }
-    
+
     public void ReachedEnd()
     {
         // Notify WaveManager that this enemy was destroyed
         OnEnemyDestroyed?.Invoke();
-        
-        // we should add logic here for what happens when an enemy reaches the end here, so probably damaging the player base & money
+
+        if (HealthManager.Instance != null)
+            HealthManager.Instance.LoseLife(1);
 
         Destroy(gameObject);
-        HealthManager.Instance.LoseLife(1);
-        EconomyManager.Instance.AwardKillGold();
     }
 }

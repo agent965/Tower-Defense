@@ -41,22 +41,28 @@ public class UIManager : MonoBehaviour
         {
             Debug.LogError("UIManager: HealthManager.Instance is null!");
         }
-        //Subscribe to gold changes
+        // Subscribe to gold changes
         if (EconomyManager.Instance != null)
         {
             EconomyManager.Instance.GoldChanged += UpdateMoneyUI;
-        } else
+            UpdateMoneyUI(EconomyManager.Instance.GetCurrentGold());
+        }
+        else
         {
             Debug.LogError("UIManager: EconomyManager.Instance is null!");
         }
         // Subscribe to shield changes
         if (HealthManager.Instance != null)
+        {
             HealthManager.Instance.ShieldChanged += UpdateShieldUI;
+            UpdateShieldUI(HealthManager.Instance.GetCurrentShields());
+        }
         else
             Debug.LogError("UIManager: HealthManager.Instance is null!");
+
         if (BuyShieldButton != null)
             BuyShieldButton.onClick.AddListener(OnBuyShieldButtonClicked);
-        
+
         // Subscribe to game state changes
         if (GameManager.Instance != null)
         {
@@ -66,24 +72,11 @@ public class UIManager : MonoBehaviour
         {
             Debug.LogError("UIManager: GameManager.Instance is null!");
         }
-        
+
         // Set up Start Wave button
         if (StartWaveButton != null)
         {
             StartWaveButton.onClick.AddListener(OnStartWaveButtonClicked);
-        }
-
-        // Initialize economy and shield display
-        if (EconomyManager.Instance != null)
-        {
-            EconomyManager.Instance.GoldChanged += UpdateMoneyUI;
-            UpdateMoneyUI(EconomyManager.Instance.GetCurrentGold());
-        }
-
-        if (HealthManager.Instance != null)
-        {
-            HealthManager.Instance.ShieldChanged += UpdateShieldUI;
-            UpdateShieldUI(HealthManager.Instance.GetCurrentShields());
         }
         
         // Initialize wave display

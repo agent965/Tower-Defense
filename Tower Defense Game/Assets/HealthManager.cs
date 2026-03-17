@@ -91,12 +91,6 @@ public void BuyShield()
         Debug.Log($"Gained {amount} life! Current Lives: {currentLives}");
     }
     
-    void TriggerGameOver()
-    {
-        Debug.Log("Lives reached 0 - Game Over!");
-        GameManager.Instance.TriggerGameOver();
-    }
-    
     // getters for current and max lives (for UI display)
     public int GetCurrentLives()
     {

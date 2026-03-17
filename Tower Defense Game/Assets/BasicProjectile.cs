@@ -9,6 +9,7 @@ public class BasicProjectile : MonoBehaviour
     private Vector2 initPos;
     private int hits;
     private int prc;
+    private double dmg;
     private void Awake()
     {
         // Ensure physics will detect collisions
@@ -40,6 +41,7 @@ public class BasicProjectile : MonoBehaviour
         rng = range;
         initPos = startPosition;
         prc = pierce;
+        dmg = damage;
 
         float radians = angleDegrees * Mathf.Deg2Rad;
         dir = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)).normalized;
@@ -60,10 +62,17 @@ public class BasicProjectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Only destroy when hitting enemies
-        if (collision.CompareTag("Enemy") && hits >= prc)
+        if (collision.CompareTag("Enemy"))
         {
-            Destroy(gameObject);
+            Enemy enemy = collision.GetComponent<Enemy>();
+            if (enemy != null)
+                enemy.TakeDamage((float)dmg);
+
+            hits++;
+            if (hits > prc)
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }

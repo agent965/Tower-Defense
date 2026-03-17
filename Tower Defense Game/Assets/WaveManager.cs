@@ -139,17 +139,22 @@ public class WaveManager : MonoBehaviour
     {
         waveInProgress = false;
         Debug.Log($"Wave {currentWave} Complete!");
-        
+
         WaveComplete?.Invoke(currentWave);
-        
+
+        if (currentWave >= totalWaves)
+        {
+            AllWavesComplete?.Invoke();
+            if (GameManager.Instance != null)
+                GameManager.Instance.TriggerVictory();
+            return;
+        }
+
         // Return to building phase
         if (GameManager.Instance != null)
         {
             GameManager.Instance.SetGameState(GameState.Building);
         }
-        
-        // You can add wave completion rewards here
-        // MoneyManager.Instance.AddMoney(100 * currentWave);
     }
     
     // Public getters for UI

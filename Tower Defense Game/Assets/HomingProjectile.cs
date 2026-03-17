@@ -6,6 +6,7 @@ public class HomingProjectile : MonoBehaviour
     public float rotateSpeed = 720f;
 
     private Transform target;
+    private double dmg;
 
     private void Awake()
     {
@@ -27,9 +28,10 @@ public class HomingProjectile : MonoBehaviour
         bc.isTrigger = true;
     }
 
-    public void SetTarget(Transform t)
+    public void SetTarget(Transform t, double damage)
     {
         target = t;
+        dmg = damage;
     }
 
     void Update()
@@ -47,6 +49,9 @@ public class HomingProjectile : MonoBehaviour
         // Check if projectile will hit this frame
         if (dir.magnitude <= distanceThisFrame)
         {
+            Enemy enemy = target.GetComponent<Enemy>();
+            if (enemy != null)
+                enemy.TakeDamage((float)dmg);
             Destroy(gameObject);
             return;
         }
@@ -65,9 +70,11 @@ public class HomingProjectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Only destroy on enemy collision
         if (collision.CompareTag("Enemy"))
         {
+            Enemy enemy = collision.GetComponent<Enemy>();
+            if (enemy != null)
+                enemy.TakeDamage((float)dmg);
             Destroy(gameObject);
         }
     }
