@@ -12,10 +12,31 @@ public class Enemy : MonoBehaviour
     public delegate void OnEnemyDestroyedDelegate();
     public event OnEnemyDestroyedDelegate OnEnemyDestroyed;
     
+    void Awake()
+    {
+        // Ensure enemy has a collider so projectiles can hit it
+        if (GetComponent<Collider2D>() == null)
+        {
+            BoxCollider2D bc = gameObject.AddComponent<BoxCollider2D>();
+            bc.isTrigger = true;
+        }
+
+        // Ensure enemy has a Rigidbody2D for trigger detection
+        if (GetComponent<Rigidbody2D>() == null)
+        {
+            Rigidbody2D rb = gameObject.AddComponent<Rigidbody2D>();
+            rb.gravityScale = 0f;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+        }
+
+        // Ensure tag is set
+        gameObject.tag = "Enemy";
+    }
+
     void Start()
     {
         currentHP = maxHP;
-        
+
         // get waypoints from PathManager
         if (PathManager.Instance != null)
         {

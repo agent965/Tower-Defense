@@ -12,7 +12,7 @@ public class Tower : MonoBehaviour
     public int mShot;
 
     public string targetTag = "Enemy";
-    public LayerMask detectionLayer = Physics2D.DefaultRaycastLayers;
+    public LayerMask detectionLayer;
 
     private double timeSinceLastAttack = 0;
     private bool fTarget;
@@ -44,19 +44,31 @@ public class Tower : MonoBehaviour
         sVal = sellValue;
         mShot = multiShot;
         fTarget = facesTarget;
+
+        // Detect all layers so OverlapCircle finds enemies
+        detectionLayer = ~0;
+    }
+
+    public double GetSellValue() { return sVal; }
+    public double GetBuyValue() { return bVal; }
+
+    private Transform FindEnemyInRange()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, rng);
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.CompareTag(targetTag))
+                return hit.transform;
+        }
+        return null;
     }
 
     private void SearchEnemy()
     {
-        Collider2D hit = Physics2D.OverlapCircle(
-            transform.position,
-            rng,
-            detectionLayer
-        );
-
-        if (hit != null && hit.CompareTag(targetTag))
+        Transform enemy = FindEnemyInRange();
+        if (enemy != null)
         {
-            ReleaseAttack(hit.transform);
+            ReleaseAttack(enemy);
         }
     }
 
@@ -64,15 +76,10 @@ public class Tower : MonoBehaviour
     {
         if (!fTarget) return;
 
-        Collider2D hit = Physics2D.OverlapCircle(
-            transform.position,
-            rng,
-            detectionLayer
-        );
-
-        if (hit != null && hit.CompareTag(targetTag))
+        Transform enemy = FindEnemyInRange();
+        if (enemy != null)
         {
-            RotateToward(hit.transform);
+            RotateToward(enemy);
         }
     }
 
@@ -120,14 +127,19 @@ public class Tower : MonoBehaviour
         proj.transform.localScale = Vector3.one * 0.2f;
 
         SpriteRenderer sr = proj.AddComponent<SpriteRenderer>();
-        sr.sprite = Sprite.Create(
-            Texture2D.whiteTexture,
-            new Rect(0, 0, 1, 1),
-            new Vector2(0.5f, 0.5f),
-            1f
-        );
+        int size = 8;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color[] pixels = new Color[size * size];
+        for (int i = 0; i < pixels.Length; i++)
+            pixels[i] = Color.white;
+        tex.SetPixels(pixels);
+        tex.Apply();
+        tex.filterMode = FilterMode.Point;
+        sr.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        sr.sortingOrder = 101;
 
-        proj.AddComponent<BoxCollider2D>();
+        BoxCollider2D bc = proj.AddComponent<BoxCollider2D>();
+        bc.isTrigger = true;
 
         Rigidbody2D rb = proj.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;

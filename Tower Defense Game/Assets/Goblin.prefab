@@ -106,7 +106,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
   moveSpeed: 2
-  maxHP: 100
+  maxHP: 10
 --- !u!61 &6769410170751134622
 BoxCollider2D:
   m_ObjectHideFlags: 0
