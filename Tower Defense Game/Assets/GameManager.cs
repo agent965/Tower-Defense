@@ -121,7 +121,7 @@ public class GameManager : MonoBehaviour
     
     public void LoadMainMenu()
     {
-        ResetTimeAndLoadScene("MainMenu"); // uncomment when you have a main menu scene
+        ResetTimeAndLoadScene("MainMenu"); // uncomment when we have a main menu scene
         // For now, this won't work without a MainMenu scene
     }
     
