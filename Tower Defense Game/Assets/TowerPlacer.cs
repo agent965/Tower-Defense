@@ -172,7 +172,8 @@ public class TowerPlacer : MonoBehaviour
         previewRenderer = preview.GetComponent<SpriteRenderer>();
 
         // Create range indicator as child of preview
-        rangeIndicator = CreateRangeIndicator(GetTowerRange(type));
+        float parentScale = preview.transform.localScale.x;
+        rangeIndicator = CreateRangeIndicator(GetTowerRange(type), parentScale);
         rangeIndicator.transform.SetParent(preview.transform, false);
     }
 
@@ -284,13 +285,12 @@ public class TowerPlacer : MonoBehaviour
         return obj;
     }
 
-    private GameObject CreateRangeIndicator(float range)
+    private GameObject CreateRangeIndicator(float range, float parentScale)
     {
         GameObject ring = new GameObject("RangeIndicator");
 
-        // Scale relative to the tower's 0.5 local scale: need range*2 diameter in world,
-        // but since parent scale is 0.5, child needs (range * 2 / 0.5) = range * 4
-        float localScale = range * 4f;
+        // diameter in world = range * 2, compensate for parent scale
+        float localScale = (range * 2f) / parentScale;
         ring.transform.localScale = Vector3.one * localScale;
 
         SpriteRenderer sr = ring.AddComponent<SpriteRenderer>();
