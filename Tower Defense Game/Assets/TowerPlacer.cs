@@ -16,7 +16,7 @@ public class TowerPlacer : MonoBehaviour
     public Sprite rapidTowerSprite;
 
     // Tower type definitions
-    public enum TowerType { Basic, Sniper, Spray, Rapid }
+    public enum TowerType { Basic, Sniper, Spray, Rapid, Slow }
 
     private bool isPlacing = false;
     private TowerType currentTowerType;
@@ -67,6 +67,7 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Sniper: return 200;
             case TowerType.Spray:  return 150;
             case TowerType.Rapid:  return 125;
+            case TowerType.Slow: return 125;
             default: return 100;
         }
     }
@@ -79,6 +80,7 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Sniper: return new Color(1f, 0.3f, 0.3f, 1f);   // red
             case TowerType.Spray:  return new Color(0.3f, 1f, 0.3f, 1f);   // green
             case TowerType.Rapid:  return new Color(1f, 0.8f, 0.2f, 1f);   // yellow
+            case TowerType.Slow: return new Color(1f, 0.8f, 0.2f, 1f);   // yellow
             default: return Color.white;
         }
     }
@@ -91,6 +93,7 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Sniper: return sniperTowerSprite;
             case TowerType.Spray:  return sprayTowerSprite;
             case TowerType.Rapid:  return rapidTowerSprite;
+            case TowerType.Slow: return rapidTowerSprite;
             default: return basicTowerSprite;
         }
     }
@@ -103,6 +106,7 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Sniper: return 6f;
             case TowerType.Spray:  return 2.5f;
             case TowerType.Rapid:  return 2.5f;
+            case TowerType.Slow: return 2.5f;
             default: return 3f;
         }
     }
@@ -114,19 +118,23 @@ public class TowerPlacer : MonoBehaviour
         {
             case TowerType.Basic:
                 // Balanced: decent damage, single homing shot
-                towerScript.init_Tower(10, 1, 3f, 8.0, 1.0, cost, cost / 2, 1, true);
+                towerScript.init_Tower(10, 1, 3f, 8.0, 1.0, cost, cost / 2, 1, true, "none");
                 break;
             case TowerType.Sniper:
                 // High damage, long range, slow fire rate
-                towerScript.init_Tower(50, 3, 6f, 15.0, 3.0, cost, cost / 2, 1, true);
+                towerScript.init_Tower(50, 3, 6f, 15.0, 3.0, cost, cost / 2, 1, true, "none");
                 break;
             case TowerType.Spray:
                 // Low damage, short range, fires in 6 directions
-                towerScript.init_Tower(5, 1, 2.5f, 6.0, 1.5, cost, cost / 2, 6, false);
+                towerScript.init_Tower(5, 1, 2.5f, 6.0, 1.5, cost, cost / 2, 6, false, "none");
                 break;
             case TowerType.Rapid:
                 // Low damage, fast fire rate, single shot
-                towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true);
+                towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "none");
+                break;
+            case TowerType.Slow:
+                // Low damage, but freezes
+                towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "none");
                 break;
         }
     }
@@ -182,6 +190,8 @@ public class TowerPlacer : MonoBehaviour
     public void StartPlacingSniperTower() { StartPlacing(TowerType.Sniper); }
     public void StartPlacingSprayTower()  { StartPlacing(TowerType.Spray); }
     public void StartPlacingRapidTower()  { StartPlacing(TowerType.Rapid); }
+
+
 
     public bool IsPlacing() { return isPlacing; }
 

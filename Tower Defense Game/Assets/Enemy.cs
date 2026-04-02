@@ -7,6 +7,8 @@ public class Enemy : MonoBehaviour
     
     private Transform[] waypoints;
     private int currentWaypointIndex = 0;
+    private string debuffed;
+    private double debuffTimer = 0;
     
     // Event for when enemy is destroyed
     public delegate void OnEnemyDestroyedDelegate();
@@ -35,6 +37,7 @@ public class Enemy : MonoBehaviour
 
     void Start()
     {
+        debuffed = "none";
         currentHP = maxHP;
 
         // get waypoints from PathManager
@@ -52,7 +55,19 @@ public class Enemy : MonoBehaviour
     {
         Move();
     }
-    
+
+    private void FixedUpdate()
+    {
+        if (debuffed == "Slow")
+        {
+            debuffTimer += 0.02;
+            if (debuffTimer > 1)
+            {
+                TakeDamage(2);
+            }
+            
+        }
+    }
     void Move()
     {
         if (waypoints == null || waypoints.Length == 0) return;
@@ -105,5 +120,10 @@ public class Enemy : MonoBehaviour
             HealthManager.Instance.LoseLife(1);
 
         Destroy(gameObject);
+    }
+
+    public void Debuff(string db)
+    {
+        debuffed = db;
     }
 }

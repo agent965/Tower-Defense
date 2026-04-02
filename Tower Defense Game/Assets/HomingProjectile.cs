@@ -51,7 +51,11 @@ public class HomingProjectile : MonoBehaviour
         {
             Enemy enemy = target.GetComponent<Enemy>();
             if (enemy != null)
+            {
                 enemy.TakeDamage((float)dmg);
+                enemy.Debuff(gameObject.name);
+            }
+                
             Destroy(gameObject);
             return;
         }

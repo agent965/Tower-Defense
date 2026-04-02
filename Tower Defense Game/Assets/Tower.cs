@@ -10,6 +10,7 @@ public class Tower : MonoBehaviour
     private double bVal;
     private double sVal;
     public int mShot;
+    private string dbuff;
 
     public string targetTag = "Enemy";
     public LayerMask detectionLayer;
@@ -32,7 +33,7 @@ public class Tower : MonoBehaviour
 
     public void init_Tower(double damage, int pierce, float range, double projectileSpeed,
         double attackCooldown, double buyValue,
-        double sellValue, int multiShot, bool facesTarget)
+        double sellValue, int multiShot, bool facesTarget, string debuff)
     {
         dmg = damage;
         prc = pierce;
@@ -44,6 +45,7 @@ public class Tower : MonoBehaviour
         sVal = sellValue;
         mShot = multiShot;
         fTarget = facesTarget;
+        dbuff = debuff;
 
         // Detect all layers so OverlapCircle finds enemies
         detectionLayer = ~0;
@@ -105,7 +107,7 @@ public class Tower : MonoBehaviour
     private void CreateHomingProjectile(Transform target)
     {
         GameObject proj = Create2DSquare();
-
+        proj.name = dbuff;
         HomingProjectile homing = proj.AddComponent<HomingProjectile>();
         homing.speed = (float)prjSpd;
         homing.SetTarget(target, dmg);
@@ -114,7 +116,7 @@ public class Tower : MonoBehaviour
     private void CreateBasicProjectile(float angle)
     {
         GameObject proj = Create2DSquare();
-
+        proj.name = dbuff;
         BasicProjectile basic = proj.AddComponent<BasicProjectile>();
         basic.SetAttributes(angle, (float)prjSpd, rng, transform.position, dmg, prc);
     }
