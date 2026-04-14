@@ -14,9 +14,10 @@ public class TowerPlacer : MonoBehaviour
     public Sprite sniperTowerSprite;
     public Sprite sprayTowerSprite;
     public Sprite rapidTowerSprite;
+    public Sprite mortarTowerSprite;
 
     // Tower type definitions
-    public enum TowerType { Basic, Sniper, Spray, Rapid, Slow }
+    public enum TowerType { Basic, Sniper, Spray, Rapid, Slow, Mortar }
 
     private bool isPlacing = false;
     private TowerType currentTowerType;
@@ -67,7 +68,8 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Sniper: return 200;
             case TowerType.Spray:  return 150;
             case TowerType.Rapid:  return 125;
-            case TowerType.Slow: return 125;
+            case TowerType.Slow:   return 125;
+            case TowerType.Mortar: return 175;
             default: return 100;
         }
     }
@@ -80,7 +82,8 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Sniper: return new Color(1f, 0.3f, 0.3f, 1f);   // red
             case TowerType.Spray:  return new Color(0.3f, 1f, 0.3f, 1f);   // green
             case TowerType.Rapid:  return new Color(1f, 0.8f, 0.2f, 1f);   // yellow
-            case TowerType.Slow: return new Color(1f, 0.8f, 0.2f, 1f);   // yellow
+            case TowerType.Slow:   return new Color(1f, 0.8f, 0.2f, 1f);   // yellow
+            case TowerType.Mortar: return new Color(0.6f, 0.4f, 0.2f, 1f); // brown
             default: return Color.white;
         }
     }
@@ -93,7 +96,8 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Sniper: return sniperTowerSprite;
             case TowerType.Spray:  return sprayTowerSprite;
             case TowerType.Rapid:  return rapidTowerSprite;
-            case TowerType.Slow: return rapidTowerSprite;
+            case TowerType.Slow:   return rapidTowerSprite;
+            case TowerType.Mortar: return mortarTowerSprite;
             default: return basicTowerSprite;
         }
     }
@@ -106,7 +110,8 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Sniper: return 6f;
             case TowerType.Spray:  return 2.5f;
             case TowerType.Rapid:  return 2.5f;
-            case TowerType.Slow: return 2.5f;
+            case TowerType.Slow:   return 2.5f;
+            case TowerType.Mortar: return 4f;
             default: return 3f;
         }
     }
@@ -137,6 +142,13 @@ public class TowerPlacer : MonoBehaviour
                 towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "none");
                 break;
         }
+    }
+
+    private void InitMortarTower(MortarTower mortar)
+    {
+        int cost = GetTowerCost(TowerType.Mortar);
+        // High splash damage, medium range, slow fire rate
+        mortar.Init(30f, 1.2f, 4f, 2.5f, cost, cost / 2, MortarTower.TowerLevel.Level1);
     }
 
     // --- Public API for UI buttons ---
@@ -190,6 +202,7 @@ public class TowerPlacer : MonoBehaviour
     public void StartPlacingSniperTower() { StartPlacing(TowerType.Sniper); }
     public void StartPlacingSprayTower()  { StartPlacing(TowerType.Spray); }
     public void StartPlacingRapidTower()  { StartPlacing(TowerType.Rapid); }
+    public void StartPlacingMortarTower() { StartPlacing(TowerType.Mortar); }
 
 
 
@@ -204,6 +217,15 @@ public class TowerPlacer : MonoBehaviour
         EconomyManager.Instance.AddGold(refund);
         Debug.Log($"TowerPlacer: Sold tower for {refund} gold");
         Destroy(tower.gameObject);
+    }
+
+    public void SellMortarTower(MortarTower mortar)
+    {
+        if (mortar == null) return;
+        int refund = (int)mortar.GetSellValue();
+        EconomyManager.Instance.AddGold(refund);
+        Debug.Log($"TowerPlacer: Sold mortar tower for {refund} gold");
+        Destroy(mortar.gameObject);
     }
 
     // --- Placement logic ---
@@ -245,8 +267,16 @@ public class TowerPlacer : MonoBehaviour
         BoxCollider2D col = tower.AddComponent<BoxCollider2D>();
         col.isTrigger = false;
 
-        Tower towerScript = tower.AddComponent<Tower>();
-        InitTower(towerScript, currentTowerType);
+        if (currentTowerType == TowerType.Mortar)
+        {
+            MortarTower mortar = tower.AddComponent<MortarTower>();
+            InitMortarTower(mortar);
+        }
+        else
+        {
+            Tower towerScript = tower.AddComponent<Tower>();
+            InitTower(towerScript, currentTowerType);
+        }
 
         Debug.Log($"TowerPlacer: Placed {currentTowerType} tower at {position}");
         CancelPlacement();
