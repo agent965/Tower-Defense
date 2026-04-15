@@ -11,6 +11,7 @@ public class MortarProjectile : MonoBehaviour
     public float arcHeight      = 2f;
     public float travelTime     = 1f;
     public float impactDuration = 0.3f;
+    public float impactScale    = 8f;
 
     private Vector3 startPosition;
     private Vector3 targetPosition;
@@ -74,7 +75,7 @@ public class MortarProjectile : MonoBehaviour
     {
         hasLanded = true;
         transform.position   = targetPosition;
-        transform.localScale = Vector3.one;
+        transform.localScale = Vector3.one * impactScale;
 
         if (groundSprite != null && spriteRenderer != null)
             spriteRenderer.sprite = groundSprite;
