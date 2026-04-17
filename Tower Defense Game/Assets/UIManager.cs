@@ -22,6 +22,7 @@ public class UIManager : MonoBehaviour
     public Button BuySniperTowerButton;
     public Button BuySprayTowerButton;
     public Button BuyRapidTowerButton;
+    public Button BuyMortarTowerButton;
 
     [Header("Tower Info")]
     public TextMeshProUGUI TowerInfoText;
@@ -86,6 +87,8 @@ public class UIManager : MonoBehaviour
             BuySprayTowerButton.onClick.AddListener(() => OnBuyTowerClicked(TowerPlacer.TowerType.Spray));
         if (BuyRapidTowerButton != null)
             BuyRapidTowerButton.onClick.AddListener(() => OnBuyTowerClicked(TowerPlacer.TowerType.Rapid));
+        if (BuyMortarTowerButton != null)
+            BuyMortarTowerButton.onClick.AddListener(() => OnBuyTowerClicked(TowerPlacer.TowerType.Mortar));
 
         // Initialize wave display
         UpdateWaveUI();
@@ -124,7 +127,8 @@ public class UIManager : MonoBehaviour
         SetButtonText(BuyBasicTowerButton, $"Basic ({TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Basic)}g)");
         SetButtonText(BuySniperTowerButton, $"Sniper ({TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Sniper)}g)");
         SetButtonText(BuySprayTowerButton, $"Spray ({TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Spray)}g)");
-        SetButtonText(BuyRapidTowerButton, $"Rapid ({TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Rapid)}g)");
+        SetButtonText(BuyRapidTowerButton,  $"Rapid ({TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Rapid)}g)");
+        SetButtonText(BuyMortarTowerButton, $"Mortar ({TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Mortar)}g)");
     }
 
     void UpdateTowerButtonAffordability()
@@ -135,7 +139,8 @@ public class UIManager : MonoBehaviour
         SetButtonInteractable(BuyBasicTowerButton, gold >= TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Basic));
         SetButtonInteractable(BuySniperTowerButton, gold >= TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Sniper));
         SetButtonInteractable(BuySprayTowerButton, gold >= TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Spray));
-        SetButtonInteractable(BuyRapidTowerButton, gold >= TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Rapid));
+        SetButtonInteractable(BuyRapidTowerButton,  gold >= TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Rapid));
+        SetButtonInteractable(BuyMortarTowerButton, gold >= TowerPlacer.GetTowerCost(TowerPlacer.TowerType.Mortar));
     }
 
     void SetButtonText(Button btn, string text)
@@ -180,8 +185,9 @@ public class UIManager : MonoBehaviour
         if (BuyBasicTowerButton != null)  BuyBasicTowerButton.gameObject.SetActive(building);
         if (BuySniperTowerButton != null) BuySniperTowerButton.gameObject.SetActive(building);
         if (BuySprayTowerButton != null)  BuySprayTowerButton.gameObject.SetActive(building);
-        if (BuyRapidTowerButton != null)  BuyRapidTowerButton.gameObject.SetActive(building);
-        if (BuyShieldButton != null)      BuyShieldButton.gameObject.SetActive(building);
+        if (BuyRapidTowerButton != null)   BuyRapidTowerButton.gameObject.SetActive(building);
+        if (BuyMortarTowerButton != null)  BuyMortarTowerButton.gameObject.SetActive(building);
+        if (BuyShieldButton != null)       BuyShieldButton.gameObject.SetActive(building);
 
         if (building)
             UpdateTowerButtonAffordability();
@@ -258,5 +264,7 @@ public class UIManager : MonoBehaviour
             BuySprayTowerButton.onClick.RemoveAllListeners();
         if (BuyRapidTowerButton != null)
             BuyRapidTowerButton.onClick.RemoveAllListeners();
+        if (BuyMortarTowerButton != null)
+            BuyMortarTowerButton.onClick.RemoveAllListeners();
     }
 }
