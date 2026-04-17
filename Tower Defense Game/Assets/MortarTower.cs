@@ -45,6 +45,9 @@ public class MortarTower : MonoBehaviour
     public double buyValue;
     public double sellValue;
 
+    private float damageMultiplier = 1f;
+    private float cooldownMultiplier = 1f;
+
     // Runtime sprite sets
     private Sprite[] currentIdle;
     private Sprite[] currentShoot;
@@ -107,6 +110,18 @@ public class MortarTower : MonoBehaviour
 
     public double GetSellValue() => sellValue;
     public double GetBuyValue()  => buyValue;
+
+    public void SetBuff(float dmgMult, float cdMult)
+    {
+        damageMultiplier = dmgMult;
+        cooldownMultiplier = cdMult;
+    }
+
+    public void ClearBuff()
+    {
+        damageMultiplier = 1f;
+        cooldownMultiplier = 1f;
+    }
 
     public void SetLevel(TowerLevel level)
     {
@@ -172,7 +187,7 @@ public class MortarTower : MonoBehaviour
         if (currentIdle != null && currentIdle.Length > 0)
             idleRoutine = StartCoroutine(PlayLooping(currentIdle, idleFrameRate));
 
-        yield return new WaitForSeconds(attackCooldown);
+        yield return new WaitForSeconds(attackCooldown / cooldownMultiplier);
         isAttacking = false;
     }
 
@@ -206,7 +221,7 @@ public class MortarTower : MonoBehaviour
             sr.sortingOrder = 101;
         }
 
-        mp.Initialize(target, damage, splashRadius);
+        mp.Initialize(target, damage * damageMultiplier, splashRadius);
     }
 
     // ── Animation helpers ──────────────────────────────────────────────────

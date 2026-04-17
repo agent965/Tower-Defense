@@ -13,11 +13,22 @@ public class WaveManager : MonoBehaviour
     public float enemiesIncreasePerWave = 2f; // how many more enemies each wave
     public float timeBetweenSpawns = 1f;
     
-    [Header("Enemy Prefabs")]
+    [Header("Enemy Prefab")]
     public GameObject enemyPrefab;
-    
+
+    [Header("Enemy Sprites (leave empty to use prefab sprite)")]
+    public Sprite basicEnemySprite;
+    public Sprite fastEnemySprite;
+    public Sprite heavyEnemySprite;
+    public Sprite tankEnemySprite;
+
+    [Header("Enemy Type Unlock Waves")]
+    public int fastUnlockWave  = 3;
+    public int heavyUnlockWave = 5;
+    public int tankUnlockWave  = 7;
+
     [Header("Spawn Settings")]
-    public Transform spawnPoint; // where enemies spawn
+    public Transform spawnPoint;
     
     // tracking
     private int enemiesAlive = 0;
@@ -112,13 +123,15 @@ public class WaveManager : MonoBehaviour
             return;
         }
         
+        EnemyType type = PickEnemyType();
+
         GameObject enemy = Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
         enemiesAlive++;
-        
-        // Subscribe to enemy death (we'll modify Enemy.cs to call this)
+
         Enemy enemyScript = enemy.GetComponent<Enemy>();
         if (enemyScript != null)
         {
+            enemyScript.InitEnemy(type, GetSpriteForType(type));
             enemyScript.OnEnemyDestroyed += OnEnemyDestroyed;
         }
     }
@@ -157,6 +170,27 @@ public class WaveManager : MonoBehaviour
         }
     }
     
+    private EnemyType PickEnemyType()
+    {
+        var pool = new List<EnemyType> { EnemyType.Basic };
+        if (currentWave >= fastUnlockWave)  pool.Add(EnemyType.Fast);
+        if (currentWave >= heavyUnlockWave) pool.Add(EnemyType.Heavy);
+        if (currentWave >= tankUnlockWave)  pool.Add(EnemyType.Tank);
+        return pool[Random.Range(0, pool.Count)];
+    }
+
+    private Sprite GetSpriteForType(EnemyType type)
+    {
+        switch (type)
+        {
+            case EnemyType.Basic:  return basicEnemySprite;
+            case EnemyType.Fast:   return fastEnemySprite;
+            case EnemyType.Heavy:  return heavyEnemySprite;
+            case EnemyType.Tank:   return tankEnemySprite;
+            default: return basicEnemySprite;
+        }
+    }
+
     // Public getters for UI
     public bool IsWaveInProgress()
     {

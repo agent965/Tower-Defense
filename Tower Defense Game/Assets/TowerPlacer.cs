@@ -15,9 +15,10 @@ public class TowerPlacer : MonoBehaviour
     public Sprite sprayTowerSprite;
     public Sprite rapidTowerSprite;
     public Sprite mortarTowerSprite;
+    public Sprite buffTowerSprite;
 
     // Tower type definitions
-    public enum TowerType { Basic, Sniper, Spray, Rapid, Slow, Mortar }
+    public enum TowerType { Basic, Sniper, Spray, Rapid, Slow, Mortar, Buff }
 
     private bool isPlacing = false;
     private TowerType currentTowerType;
@@ -70,6 +71,7 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Rapid:  return 125;
             case TowerType.Slow:   return 125;
             case TowerType.Mortar: return 175;
+            case TowerType.Buff:   return 150;
             default: return 100;
         }
     }
@@ -84,6 +86,7 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Rapid:  return new Color(1f, 0.8f, 0.2f, 1f);   // yellow
             case TowerType.Slow:   return new Color(1f, 0.8f, 0.2f, 1f);   // yellow
             case TowerType.Mortar: return new Color(0.6f, 0.4f, 0.2f, 1f); // brown
+            case TowerType.Buff:   return new Color(0.7f, 0.3f, 1f, 1f);   // purple
             default: return Color.white;
         }
     }
@@ -98,6 +101,7 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Rapid:  return rapidTowerSprite;
             case TowerType.Slow:   return rapidTowerSprite;
             case TowerType.Mortar: return mortarTowerSprite;
+            case TowerType.Buff:   return buffTowerSprite;
             default: return basicTowerSprite;
         }
     }
@@ -112,6 +116,7 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Rapid:  return 2.5f;
             case TowerType.Slow:   return 2.5f;
             case TowerType.Mortar: return 4f;
+            case TowerType.Buff:   return 3f;
             default: return 3f;
         }
     }
@@ -138,8 +143,8 @@ public class TowerPlacer : MonoBehaviour
                 towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "none");
                 break;
             case TowerType.Slow:
-                // Low damage, but freezes
-                towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "none");
+                // Low damage, applies Slow debuff (DoT)
+                towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "Slow");
                 break;
         }
     }
@@ -147,8 +152,14 @@ public class TowerPlacer : MonoBehaviour
     private void InitMortarTower(MortarTower mortar)
     {
         int cost = GetTowerCost(TowerType.Mortar);
-        // High splash damage, medium range, slow fire rate
         mortar.Init(30f, 1.2f, 4f, 2.5f, cost, cost / 2, MortarTower.TowerLevel.Level1);
+    }
+
+    private void InitBuffTower(BuffTower buff)
+    {
+        int cost = GetTowerCost(TowerType.Buff);
+        // +30% damage and +30% attack speed to nearby towers within range 3
+        buff.Init(1.3f, 1.3f, 3f, cost, cost / 2);
     }
 
     // --- Public API for UI buttons ---
@@ -202,7 +213,9 @@ public class TowerPlacer : MonoBehaviour
     public void StartPlacingSniperTower() { StartPlacing(TowerType.Sniper); }
     public void StartPlacingSprayTower()  { StartPlacing(TowerType.Spray); }
     public void StartPlacingRapidTower()  { StartPlacing(TowerType.Rapid); }
+    public void StartPlacingSlowTower()   { StartPlacing(TowerType.Slow); }
     public void StartPlacingMortarTower() { StartPlacing(TowerType.Mortar); }
+    public void StartPlacingBuffTower()   { StartPlacing(TowerType.Buff); }
 
 
 
@@ -226,6 +239,15 @@ public class TowerPlacer : MonoBehaviour
         EconomyManager.Instance.AddGold(refund);
         Debug.Log($"TowerPlacer: Sold mortar tower for {refund} gold");
         Destroy(mortar.gameObject);
+    }
+
+    public void SellBuffTower(BuffTower buff)
+    {
+        if (buff == null) return;
+        int refund = (int)buff.GetSellValue();
+        EconomyManager.Instance.AddGold(refund);
+        Debug.Log($"TowerPlacer: Sold buff tower for {refund} gold");
+        Destroy(buff.gameObject);
     }
 
     // --- Placement logic ---
@@ -271,6 +293,11 @@ public class TowerPlacer : MonoBehaviour
         {
             MortarTower mortar = tower.AddComponent<MortarTower>();
             InitMortarTower(mortar);
+        }
+        else if (currentTowerType == TowerType.Buff)
+        {
+            BuffTower buff = tower.AddComponent<BuffTower>();
+            InitBuffTower(buff);
         }
         else
         {

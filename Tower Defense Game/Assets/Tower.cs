@@ -18,6 +18,8 @@ public class Tower : MonoBehaviour
     private double timeSinceLastAttack = 0;
     private bool fTarget;
     private float rotationSpeed = 360f;
+    private float damageMultiplier = 1f;
+    private float cooldownMultiplier = 1f;
 
     void FixedUpdate()
     {
@@ -25,7 +27,7 @@ public class Tower : MonoBehaviour
 
         timeSinceLastAttack += Time.fixedDeltaTime;
 
-        if (timeSinceLastAttack >= atkCd)
+        if (timeSinceLastAttack >= atkCd / cooldownMultiplier)
         {
             SearchEnemy();
         }
@@ -53,6 +55,18 @@ public class Tower : MonoBehaviour
 
     public double GetSellValue() { return sVal; }
     public double GetBuyValue() { return bVal; }
+
+    public void SetBuff(float dmgMult, float cdMult)
+    {
+        damageMultiplier = dmgMult;
+        cooldownMultiplier = cdMult;
+    }
+
+    public void ClearBuff()
+    {
+        damageMultiplier = 1f;
+        cooldownMultiplier = 1f;
+    }
 
     private Transform FindEnemyInRange()
     {
@@ -110,7 +124,7 @@ public class Tower : MonoBehaviour
         proj.name = dbuff;
         HomingProjectile homing = proj.AddComponent<HomingProjectile>();
         homing.speed = (float)prjSpd;
-        homing.SetTarget(target, dmg);
+        homing.SetTarget(target, dmg * damageMultiplier);
     }
 
     private void CreateBasicProjectile(float angle)
@@ -118,7 +132,7 @@ public class Tower : MonoBehaviour
         GameObject proj = Create2DSquare();
         proj.name = dbuff;
         BasicProjectile basic = proj.AddComponent<BasicProjectile>();
-        basic.SetAttributes(angle, (float)prjSpd, rng, transform.position, dmg, prc);
+        basic.SetAttributes(angle, (float)prjSpd, rng, transform.position, dmg * damageMultiplier, prc);
     }
 
     private GameObject Create2DSquare()
