@@ -19,8 +19,6 @@ public class EnemyHealthBar : MonoBehaviour
         old = transform.Find("HB_Fill");
         if (old != null) Destroy(old.gameObject);
 
-        // Divide world-space sizes by the enemy's world scale so the bar
-        // appears at a fixed size regardless of how the enemy sprite is scaled
         Vector3 ls = transform.lossyScale;
         localW = worldBarWidth  / Mathf.Abs(ls.x);
         localH = worldBarHeight / Mathf.Abs(ls.y);
