@@ -127,24 +127,19 @@ public class TowerPlacer : MonoBehaviour
         switch (type)
         {
             case TowerType.Basic:
-                // Balanced: decent damage, single homing shot
-                towerScript.init_Tower(10, 1, 3f, 8.0, 1.0, cost, cost / 2, 1, true, "none");
+                towerScript.init_Tower(15, 1, 3f, 8.0, 1.0, cost, cost / 2, 1, true, "none");
                 break;
             case TowerType.Sniper:
-                // High damage, long range, slow fire rate
-                towerScript.init_Tower(50, 3, 6f, 15.0, 3.0, cost, cost / 2, 1, true, "none");
+                towerScript.init_Tower(75, 3, 6f, 15.0, 3.0, cost, cost / 2, 1, true, "none");
                 break;
             case TowerType.Spray:
-                // Low damage, short range, fires in 6 directions
-                towerScript.init_Tower(5, 1, 2.5f, 6.0, 1.5, cost, cost / 2, 6, false, "none");
+                towerScript.init_Tower(8, 1, 2.5f, 6.0, 1.5, cost, cost / 2, 6, false, "none");
                 break;
             case TowerType.Rapid:
-                // Low damage, fast fire rate, single shot
-                towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "none");
+                towerScript.init_Tower(6, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "none");
                 break;
             case TowerType.Slow:
-                // Low damage, applies Slow debuff (DoT)
-                towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "Slow");
+                towerScript.init_Tower(6, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "Slow");
                 break;
         }
     }
@@ -152,7 +147,7 @@ public class TowerPlacer : MonoBehaviour
     private void InitMortarTower(MortarTower mortar)
     {
         int cost = GetTowerCost(TowerType.Mortar);
-        mortar.Init(30f, 1.2f, 4f, 2.5f, cost, cost / 2, MortarTower.TowerLevel.Level1);
+        mortar.Init(45f, 1.2f, 4f, 2.5f, cost, cost / 2, MortarTower.TowerLevel.Level1);
     }
 
     private void InitBuffTower(BuffTower buff)
