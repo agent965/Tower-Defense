@@ -14,6 +14,7 @@ public class Tower : MonoBehaviour
 
     public string targetTag = "Enemy";
     public LayerMask detectionLayer;
+    public TargetMode targetMode = TargetMode.First;
 
     private double timeSinceLastAttack = 0;
     private bool fTarget;
@@ -54,7 +55,44 @@ public class Tower : MonoBehaviour
     }
 
     public double GetSellValue() { return sVal; }
-    public double GetBuyValue() { return bVal; }
+    public double GetBuyValue()  { return bVal; }
+    public int    GetDamage()    => (int)dmg;
+    public float  GetRange()     => rng;
+    public float  GetCooldown()  => (float)atkCd;
+
+    // ── Upgrade system ─────────────────────────────────────────────────────
+
+    private int upgradeLevel = 0;
+    private TowerUpgradeData[] upgrades;
+
+    public void SetUpgrades(TowerUpgradeData[] data) { upgrades = data; }
+
+    public int  GetUpgradeLevel() => upgradeLevel;
+    public bool IsMaxLevel()      => upgrades == null || upgradeLevel >= upgrades.Length;
+
+    public int GetUpgradeCost()
+    {
+        if (IsMaxLevel()) return 0;
+        return upgrades[upgradeLevel].cost;
+    }
+
+    public string GetUpgradeDescription()
+    {
+        if (IsMaxLevel()) return "MAX LEVEL";
+        return upgrades[upgradeLevel].description;
+    }
+
+    public void Upgrade()
+    {
+        if (IsMaxLevel()) return;
+        TowerUpgradeData u = upgrades[upgradeLevel];
+        upgradeLevel++;
+
+        dmg   += u.dmgAdd;
+        rng   *= u.rangeMult;
+        atkCd *= u.cooldownMult;
+        sVal  += u.cost * 0.5;
+    }
 
     public void SetBuff(float dmgMult, float cdMult)
     {
@@ -71,12 +109,34 @@ public class Tower : MonoBehaviour
     private Transform FindEnemyInRange()
     {
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, rng);
+
+        Transform best       = null;
+        int       bestWP     = -1;
+        float     bestHP     = -1f;
+
         foreach (Collider2D hit in hits)
         {
-            if (hit.CompareTag(targetTag))
-                return hit.transform;
+            if (!hit.CompareTag(targetTag)) continue;
+            Enemy e = hit.GetComponent<Enemy>();
+            if (e == null) continue;
+
+            switch (targetMode)
+            {
+                case TargetMode.First:
+                    if (e.GetWaypointIndex() > bestWP)
+                    { bestWP = e.GetWaypointIndex(); best = hit.transform; }
+                    break;
+                case TargetMode.Last:
+                    if (best == null || e.GetWaypointIndex() < bestWP)
+                    { bestWP = e.GetWaypointIndex(); best = hit.transform; }
+                    break;
+                case TargetMode.Strongest:
+                    if (e.GetCurrentHP() > bestHP)
+                    { bestHP = e.GetCurrentHP(); best = hit.transform; }
+                    break;
+            }
         }
-        return null;
+        return best;
     }
 
     private void SearchEnemy()

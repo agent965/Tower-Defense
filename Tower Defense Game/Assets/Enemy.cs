@@ -112,6 +112,9 @@ public class Enemy : MonoBehaviour
         }
     }
     
+    public int   GetWaypointIndex() => currentWaypointIndex;
+    public float GetCurrentHP()     => currentHP;
+
     public void TakeDamage(float damage)
     {
         currentHP -= damage;

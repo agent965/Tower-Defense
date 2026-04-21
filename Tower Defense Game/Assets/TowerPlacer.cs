@@ -32,10 +32,35 @@ public class TowerPlacer : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+
+        // Auto-create the targeting UI singleton if it's not in the scene
+        if (TowerTargetingUI.Instance == null)
+        {
+            GameObject uiObj = new GameObject("TowerTargetingUI");
+            uiObj.AddComponent<TowerTargetingUI>();
+        }
     }
 
     void Update()
     {
+        // Tower selection click (only when not in placement mode)
+        if (!isPlacing && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            // Ignore clicks that land on a UI element (e.g. targeting buttons)
+            if (!UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+            {
+                Vector2 clickScreen = Mouse.current.position.ReadValue();
+                Vector3 clickWorld  = Camera.main.ScreenToWorldPoint(new Vector3(clickScreen.x, clickScreen.y, 0f));
+                clickWorld.z = 0f;
+
+                RaycastHit2D hit = Physics2D.Raycast(clickWorld, Vector2.zero);
+                if (hit.collider != null && hit.collider.GetComponent<TowerClickHandler>() != null)
+                    TowerTargetingUI.Instance?.Show(hit.collider.gameObject);
+                else
+                    TowerTargetingUI.Instance?.Hide();
+            }
+        }
+
         if (!isPlacing) return;
 
         Vector2 mouseScreen = Mouse.current.position.ReadValue();
@@ -127,24 +152,44 @@ public class TowerPlacer : MonoBehaviour
         switch (type)
         {
             case TowerType.Basic:
-                // Balanced: decent damage, single homing shot
                 towerScript.init_Tower(10, 1, 3f, 8.0, 1.0, cost, cost / 2, 1, true, "none");
+                towerScript.SetUpgrades(new TowerUpgradeData[]
+                {
+                    new TowerUpgradeData { cost = 75,  dmgAdd = 5,  rangeMult = 1.1f, cooldownMult = 1f,    description = "+5 DMG  +10% RNG" },
+                    new TowerUpgradeData { cost = 100, dmgAdd = 10, rangeMult = 1f,   cooldownMult = 0.85f, description = "+10 DMG  -15% CD" },
+                });
                 break;
             case TowerType.Sniper:
-                // High damage, long range, slow fire rate
                 towerScript.init_Tower(50, 3, 6f, 15.0, 3.0, cost, cost / 2, 1, true, "none");
+                towerScript.SetUpgrades(new TowerUpgradeData[]
+                {
+                    new TowerUpgradeData { cost = 125, dmgAdd = 40, rangeMult = 1.15f, cooldownMult = 1f, description = "+40 DMG  +15% RNG" },
+                    new TowerUpgradeData { cost = 175, dmgAdd = 60, rangeMult = 1.1f,  cooldownMult = 1f, description = "+60 DMG  +10% RNG" },
+                });
                 break;
             case TowerType.Spray:
-                // Low damage, short range, fires in 6 directions
                 towerScript.init_Tower(5, 1, 2.5f, 6.0, 1.5, cost, cost / 2, 6, false, "none");
+                towerScript.SetUpgrades(new TowerUpgradeData[]
+                {
+                    new TowerUpgradeData { cost = 80,  dmgAdd = 3, rangeMult = 1f,   cooldownMult = 0.9f,  description = "+3 DMG  -10% CD" },
+                    new TowerUpgradeData { cost = 110, dmgAdd = 5, rangeMult = 1.1f, cooldownMult = 0.85f, description = "+5 DMG  +10% RNG  -15% CD" },
+                });
                 break;
             case TowerType.Rapid:
-                // Low damage, fast fire rate, single shot
                 towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "none");
+                towerScript.SetUpgrades(new TowerUpgradeData[]
+                {
+                    new TowerUpgradeData { cost = 60, dmgAdd = 10, rangeMult = 1f, cooldownMult = 0.8f,  description = "+10 DMG  -20% CD" },
+                    new TowerUpgradeData { cost = 90, dmgAdd = 10, rangeMult = 1f, cooldownMult = 0.75f, description = "+10 DMG  -25% CD" },
+                });
                 break;
             case TowerType.Slow:
-                // Low damage, applies Slow debuff (DoT)
                 towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "Slow");
+                towerScript.SetUpgrades(new TowerUpgradeData[]
+                {
+                    new TowerUpgradeData { cost = 70,  dmgAdd = 2, rangeMult = 1.1f, cooldownMult = 1f, description = "+2 DMG  +10% RNG" },
+                    new TowerUpgradeData { cost = 100, dmgAdd = 3, rangeMult = 1.1f, cooldownMult = 1f, description = "+3 DMG  +10% RNG" },
+                });
                 break;
         }
     }
@@ -153,6 +198,11 @@ public class TowerPlacer : MonoBehaviour
     {
         int cost = GetTowerCost(TowerType.Mortar);
         mortar.Init(30f, 1.2f, 4f, 2.5f, cost, cost / 2, MortarTower.TowerLevel.Level1);
+        mortar.SetUpgrades(new TowerUpgradeData[]
+        {
+            new TowerUpgradeData { cost = 130, dmgAdd = 100, rangeMult = 1f,   cooldownMult = 1f,   splashAdd = 0.3f, description = "+100 DMG  +0.3 Splash" },
+            new TowerUpgradeData { cost = 175, dmgAdd = 50,  rangeMult = 1.1f, cooldownMult = 0.8f, splashAdd = 0f,   description = "+50 DMG  +10% RNG  -20% CD" },
+        });
     }
 
     private void InitBuffTower(BuffTower buff)
@@ -173,9 +223,9 @@ public class TowerPlacer : MonoBehaviour
             Debug.LogError("TowerPlacer: GameManager.Instance is null!");
             return;
         }
-        if (!GameManager.Instance.IsBuilding())
+        if (GameManager.Instance.IsGameOver())
         {
-            Debug.Log($"TowerPlacer: Can't place - game state is {GameManager.Instance.gameState}, not Building");
+            Debug.Log($"TowerPlacer: Can't place - game is over");
             return;
         }
         if (EconomyManager.Instance == null)
@@ -284,6 +334,7 @@ public class TowerPlacer : MonoBehaviour
         GameObject tower = CreateTowerVisual(color, GetTowerSprite(currentTowerType));
         tower.transform.position = position;
         tower.name = currentTowerType.ToString() + "Tower";
+        tower.layer = LayerMask.NameToLayer("PlacementBlocked");
 
         // Add a small collider so towers block each other from overlapping
         BoxCollider2D col = tower.AddComponent<BoxCollider2D>();
@@ -304,6 +355,8 @@ public class TowerPlacer : MonoBehaviour
             Tower towerScript = tower.AddComponent<Tower>();
             InitTower(towerScript, currentTowerType);
         }
+
+        tower.AddComponent<TowerClickHandler>();
 
         Debug.Log($"TowerPlacer: Placed {currentTowerType} tower at {position}");
         CancelPlacement();

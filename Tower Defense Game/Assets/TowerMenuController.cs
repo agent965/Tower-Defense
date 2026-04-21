@@ -9,7 +9,7 @@ public class TowerMenuUI : MonoBehaviour
         // Hide tower menu during non-building phases
         if (towerBuyMenu != null && GameManager.Instance != null)
         {
-            if (!GameManager.Instance.IsBuilding() && towerBuyMenu.activeSelf)
+            if (GameManager.Instance.IsGameOver() && towerBuyMenu.activeSelf)
                 towerBuyMenu.SetActive(false);
         }
     }
@@ -17,7 +17,7 @@ public class TowerMenuUI : MonoBehaviour
     public void ToggleTowerMenu()
     {
         if (towerBuyMenu == null) return;
-        if (!GameManager.Instance.IsBuilding()) return;
+        if (GameManager.Instance.IsGameOver()) return;
 
         towerBuyMenu.SetActive(!towerBuyMenu.activeSelf);
     }
@@ -25,7 +25,7 @@ public class TowerMenuUI : MonoBehaviour
     public void OpenTowerMenu()
     {
         if (towerBuyMenu == null) return;
-        if (!GameManager.Instance.IsBuilding()) return;
+        if (GameManager.Instance.IsGameOver()) return;
         towerBuyMenu.SetActive(true);
     }
 

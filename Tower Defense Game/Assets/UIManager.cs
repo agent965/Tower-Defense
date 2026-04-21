@@ -177,17 +177,18 @@ public class UIManager : MonoBehaviour
     void UpdateButtonVisibility(GameState state)
     {
         bool building = state == GameState.Building;
+        bool canBuy   = state == GameState.Building || state == GameState.WaveActive;
 
         if (StartWaveButton != null)
             StartWaveButton.gameObject.SetActive(building);
 
-        // Tower buttons only visible during building phase
-        if (BuyBasicTowerButton != null)  BuyBasicTowerButton.gameObject.SetActive(building);
-        if (BuySniperTowerButton != null) BuySniperTowerButton.gameObject.SetActive(building);
-        if (BuySprayTowerButton != null)  BuySprayTowerButton.gameObject.SetActive(building);
-        if (BuyRapidTowerButton != null)   BuyRapidTowerButton.gameObject.SetActive(building);
-        if (BuyMortarTowerButton != null)  BuyMortarTowerButton.gameObject.SetActive(building);
-        if (BuyShieldButton != null)       BuyShieldButton.gameObject.SetActive(building);
+        // Tower buttons visible during building AND during waves
+        if (BuyBasicTowerButton != null)  BuyBasicTowerButton.gameObject.SetActive(canBuy);
+        if (BuySniperTowerButton != null) BuySniperTowerButton.gameObject.SetActive(canBuy);
+        if (BuySprayTowerButton != null)  BuySprayTowerButton.gameObject.SetActive(canBuy);
+        if (BuyRapidTowerButton != null)  BuyRapidTowerButton.gameObject.SetActive(canBuy);
+        if (BuyMortarTowerButton != null) BuyMortarTowerButton.gameObject.SetActive(canBuy);
+        if (BuyShieldButton != null)      BuyShieldButton.gameObject.SetActive(canBuy);
 
         if (building)
             UpdateTowerButtonAffordability();

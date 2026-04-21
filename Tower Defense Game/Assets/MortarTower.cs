@@ -40,6 +40,7 @@ public class MortarTower : MonoBehaviour
     public float damage       = 30f;
     public float splashRadius = 1.2f;
     public string targetTag   = "Enemy";
+    public TargetMode targetMode = TargetMode.First;
 
     [Header("Economy")]
     public double buyValue;
@@ -111,6 +112,45 @@ public class MortarTower : MonoBehaviour
     public double GetSellValue() => sellValue;
     public double GetBuyValue()  => buyValue;
 
+    // ── Upgrade system ─────────────────────────────────────────────────────
+
+    private int upgradeLevel = 0;
+    private TowerUpgradeData[] upgrades;
+
+    public void SetUpgrades(TowerUpgradeData[] data) { upgrades = data; }
+
+    public int  GetUpgradeLevel() => upgradeLevel;
+    public bool IsMaxLevel()      => upgrades == null || upgradeLevel >= upgrades.Length;
+
+    public int GetUpgradeCost()
+    {
+        if (IsMaxLevel()) return 0;
+        return upgrades[upgradeLevel].cost;
+    }
+
+    public string GetUpgradeDescription()
+    {
+        if (IsMaxLevel()) return "MAX LEVEL";
+        return upgrades[upgradeLevel].description;
+    }
+
+    public void Upgrade()
+    {
+        if (IsMaxLevel()) return;
+        TowerUpgradeData u = upgrades[upgradeLevel];
+        upgradeLevel++;
+
+        damage        += u.dmgAdd;
+        range         *= u.rangeMult;
+        attackCooldown *= u.cooldownMult;
+        splashRadius  += u.splashAdd;
+        sellValue     += u.cost * 0.5;
+
+        // Switch to Level2 visuals on first upgrade
+        if (upgradeLevel == 1 && currentLevel == TowerLevel.Level1)
+            SetLevel(TowerLevel.Level2);
+    }
+
     public void SetBuff(float dmgMult, float cdMult)
     {
         damageMultiplier = dmgMult;
@@ -151,15 +191,35 @@ public class MortarTower : MonoBehaviour
     private Transform FindEnemyInRange()
     {
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, range);
+
+        Transform best   = null;
+        int       bestWP = -1;
+        float     bestHP = -1f;
+
         foreach (Collider2D hit in hits)
         {
             if (hit == null || !hit.gameObject.activeInHierarchy) continue;
             if (!hit.CompareTag(targetTag)) continue;
-            // Skip enemies with no HP left (dying this frame)
             Enemy e = hit.GetComponent<Enemy>();
-            if (e != null) return hit.transform;
+            if (e == null) continue;
+
+            switch (targetMode)
+            {
+                case TargetMode.First:
+                    if (e.GetWaypointIndex() > bestWP)
+                    { bestWP = e.GetWaypointIndex(); best = hit.transform; }
+                    break;
+                case TargetMode.Last:
+                    if (best == null || e.GetWaypointIndex() < bestWP)
+                    { bestWP = e.GetWaypointIndex(); best = hit.transform; }
+                    break;
+                case TargetMode.Strongest:
+                    if (e.GetCurrentHP() > bestHP)
+                    { bestHP = e.GetCurrentHP(); best = hit.transform; }
+                    break;
+            }
         }
-        return null;
+        return best;
     }
 
     IEnumerator AttackRoutine(Transform targetTransform, Vector3 fallbackPos = default)
