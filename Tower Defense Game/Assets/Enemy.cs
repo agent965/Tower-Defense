@@ -3,8 +3,8 @@ public class Enemy : MonoBehaviour
 {
     public float moveSpeed = 2f;
     public float maxHP = 100f;
+    public int goldValue = 10;
     private float currentHP;
-    private int goldValue = 10;
 
     private EnemyHealthBar healthBar;
 
@@ -137,21 +137,7 @@ public class Enemy : MonoBehaviour
 
     public void InitEnemy(EnemyType type, Sprite sprite)
     {
-        switch (type)
-        {
-            case EnemyType.Basic:
-                maxHP = 100f; moveSpeed = 2f; goldValue = 10;
-                break;
-            case EnemyType.Fast:
-                maxHP = 60f; moveSpeed = 4f; goldValue = 15;
-                break;
-            case EnemyType.Heavy:
-                maxHP = 300f; moveSpeed = 1f; goldValue = 25;
-                break;
-            case EnemyType.Tank:
-                maxHP = 600f; moveSpeed = 0.6f; goldValue = 40;
-                break;
-        }
+        // Stats (maxHP, moveSpeed, goldValue) are set on the prefab in the Inspector
 
         if (sprite != null)
         {

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3731336998476171823}
   - component: {fileID: 6769410170751134622}
   m_Layer: 0
-  m_Name: Goblin
+  m_Name: FastEnemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -105,8 +105,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56a275df52f175c49ba72103f41b0195, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  moveSpeed: 2
-  maxHP: 10
+  moveSpeed: 4
+  maxHP: 50
+  goldValue: 10
 --- !u!61 &6769410170751134622
 BoxCollider2D:
   m_ObjectHideFlags: 0

@@ -13,14 +13,11 @@ public class WaveManager : MonoBehaviour
     public float enemiesIncreasePerWave = 2f; // how many more enemies each wave
     public float timeBetweenSpawns = 1f;
     
-    [Header("Enemy Prefab")]
-    public GameObject enemyPrefab;
-
-    [Header("Enemy Sprites (leave empty to use prefab sprite)")]
-    public Sprite basicEnemySprite;
-    public Sprite fastEnemySprite;
-    public Sprite heavyEnemySprite;
-    public Sprite tankEnemySprite;
+    [Header("Enemy Prefabs")]
+    public GameObject basicEnemyPrefab;
+    public GameObject fastEnemyPrefab;
+    public GameObject heavyEnemyPrefab;
+    public GameObject tankEnemyPrefab;
 
     [Header("Enemy Type Unlock Waves")]
     public int fastUnlockWave  = 3;
@@ -111,28 +108,41 @@ public class WaveManager : MonoBehaviour
     
     void SpawnEnemy()
     {
-        if (enemyPrefab == null)
-        {
-            Debug.LogError("No enemy prefab assigned to WaveManager!");
-            return;
-        }
-        
         if (spawnPoint == null)
         {
             Debug.LogError("No spawn point assigned to WaveManager!");
             return;
         }
-        
-        EnemyType type = PickEnemyType();
 
-        GameObject enemy = Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
+        EnemyType type = PickEnemyType();
+        GameObject prefab = GetPrefabForType(type);
+
+        if (prefab == null)
+        {
+            Debug.LogError($"No prefab assigned for enemy type {type}!");
+            return;
+        }
+
+        GameObject enemy = Instantiate(prefab, spawnPoint.position, Quaternion.identity);
         enemiesAlive++;
 
         Enemy enemyScript = enemy.GetComponent<Enemy>();
         if (enemyScript != null)
         {
-            enemyScript.InitEnemy(type, GetSpriteForType(type));
+            enemyScript.InitEnemy(type, null);
             enemyScript.OnEnemyDestroyed += OnEnemyDestroyed;
+        }
+    }
+
+    private GameObject GetPrefabForType(EnemyType type)
+    {
+        switch (type)
+        {
+            case EnemyType.Basic:  return basicEnemyPrefab;
+            case EnemyType.Fast:   return fastEnemyPrefab;
+            case EnemyType.Heavy:  return heavyEnemyPrefab;
+            case EnemyType.Tank:   return tankEnemyPrefab;
+            default: return basicEnemyPrefab;
         }
     }
     
@@ -179,17 +189,6 @@ public class WaveManager : MonoBehaviour
         return pool[Random.Range(0, pool.Count)];
     }
 
-    private Sprite GetSpriteForType(EnemyType type)
-    {
-        switch (type)
-        {
-            case EnemyType.Basic:  return basicEnemySprite;
-            case EnemyType.Fast:   return fastEnemySprite;
-            case EnemyType.Heavy:  return heavyEnemySprite;
-            case EnemyType.Tank:   return tankEnemySprite;
-            default: return basicEnemySprite;
-        }
-    }
 
     // Public getters for UI
     public bool IsWaveInProgress()
