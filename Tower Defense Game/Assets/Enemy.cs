@@ -115,6 +115,12 @@ public class Enemy : MonoBehaviour
     public int   GetWaypointIndex() => currentWaypointIndex;
     public float GetCurrentHP()     => currentHP;
 
+    public float GetDistanceToNextWaypoint()
+    {
+        if (waypoints == null || currentWaypointIndex >= waypoints.Length) return 0f;
+        return Vector2.Distance(transform.position, waypoints[currentWaypointIndex].position);
+    }
+
     public void TakeDamage(float damage)
     {
         currentHP -= damage;

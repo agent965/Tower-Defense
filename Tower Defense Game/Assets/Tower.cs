@@ -112,6 +112,7 @@ public class Tower : MonoBehaviour
 
         Transform best       = null;
         int       bestWP     = -1;
+        float     bestDist   = float.MaxValue;
         float     bestHP     = -1f;
 
         foreach (Collider2D hit in hits)
@@ -123,8 +124,10 @@ public class Tower : MonoBehaviour
             switch (targetMode)
             {
                 case TargetMode.First:
-                    if (e.GetWaypointIndex() > bestWP)
-                    { bestWP = e.GetWaypointIndex(); best = hit.transform; }
+                    int   wp   = e.GetWaypointIndex();
+                    float dist = e.GetDistanceToNextWaypoint();
+                    if (wp > bestWP || (wp == bestWP && dist < bestDist))
+                    { bestWP = wp; bestDist = dist; best = hit.transform; }
                     break;
                 case TargetMode.Last:
                     if (best == null || e.GetWaypointIndex() < bestWP)

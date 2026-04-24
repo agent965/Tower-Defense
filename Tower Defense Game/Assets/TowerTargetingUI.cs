@@ -27,6 +27,7 @@ public class TowerTargetingUI : MonoBehaviour
     private TextMeshProUGUI sellBtnText;
 
     private GameObject currentTower;
+    private GameObject rangeIndicator;
 
     // ── Lifecycle ──────────────────────────────────────────────────────────
 
@@ -75,6 +76,7 @@ public class TowerTargetingUI : MonoBehaviour
     {
         currentTower = tower;
         RefreshAll();
+        ShowRangeIndicator(tower);
         panel.SetActive(true);
     }
 
@@ -85,6 +87,7 @@ public class TowerTargetingUI : MonoBehaviour
     void HidePanel()
     {
         if (panel != null) panel.SetActive(false);
+        HideRangeIndicator();
         currentTower = null;
     }
 
@@ -257,6 +260,67 @@ public class TowerTargetingUI : MonoBehaviour
         if (mt != null) sellVal = (int)mt.GetSellValue();
 
         sellBtnText.text = $"Sell  {sellVal}g";
+    }
+
+    // ── Range Indicator ────────────────────────────────────────────────────
+
+    void ShowRangeIndicator(GameObject tower)
+    {
+        float range = 0f;
+        Tower t = tower.GetComponent<Tower>();
+        if (t != null) range = t.GetRange();
+
+        MortarTower mt = tower.GetComponent<MortarTower>();
+        if (mt != null) range = mt.range;
+
+        if (range <= 0f) return;
+
+        if (rangeIndicator == null)
+            rangeIndicator = CreateRangeCircle();
+
+        rangeIndicator.transform.position = tower.transform.position;
+        rangeIndicator.transform.localScale = Vector3.one * range * 2f;
+        rangeIndicator.SetActive(true);
+    }
+
+    void HideRangeIndicator()
+    {
+        if (rangeIndicator != null)
+            rangeIndicator.SetActive(false);
+    }
+
+    GameObject CreateRangeCircle()
+    {
+        GameObject obj = new GameObject("RangeIndicator");
+        SpriteRenderer sr = obj.AddComponent<SpriteRenderer>();
+        sr.sortingOrder = 99;
+
+        int texSize = 128;
+        Texture2D tex = new Texture2D(texSize, texSize, TextureFormat.RGBA32, false);
+        float center = texSize / 2f;
+        float outerR = center;
+        float innerR = center - 3f;
+
+        for (int y = 0; y < texSize; y++)
+        {
+            for (int x = 0; x < texSize; x++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
+                if (dist <= outerR && dist >= innerR)
+                    tex.SetPixel(x, y, new Color(1f, 1f, 1f, 0.6f));
+                else if (dist < innerR)
+                    tex.SetPixel(x, y, new Color(1f, 1f, 1f, 0.04f));
+                else
+                    tex.SetPixel(x, y, Color.clear);
+            }
+        }
+        tex.Apply();
+        tex.filterMode = FilterMode.Bilinear;
+
+        sr.sprite = Sprite.Create(tex, new Rect(0, 0, texSize, texSize), new Vector2(0.5f, 0.5f), texSize);
+        sr.color  = new Color(0.4f, 0.8f, 1f, 1f); // light blue tint
+
+        return obj;
     }
 
     // ── UI Construction ────────────────────────────────────────────────────
