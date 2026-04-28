@@ -11,7 +11,10 @@ public class MortarProjectile : MonoBehaviour
     public float arcHeight      = 2f;
     public float travelTime     = 1f;
     public float impactDuration = 0.3f;
-    public float impactScale    = 8f;
+    [Tooltip("Multiplier applied on top of splashRadius for the impact visual. 1.0 = exact splash diameter (often too small if the sprite has transparent padding).")]
+    public float impactScale    = 3f;
+    [Tooltip("Max scale of the airborne projectile sprite (the 'star').")]
+    public float airSpriteScale = 0.7f;
 
     private Vector3 startPosition;
     private Vector3 targetPosition;
@@ -65,7 +68,7 @@ public class MortarProjectile : MonoBehaviour
         transform.position = linearPos + Vector3.up * height;
 
         // Scale up while rising, scale down while falling — gives a nice lob feel
-        float scale = 0.5f + Mathf.Sin(t * Mathf.PI) * 0.5f;
+        float scale = airSpriteScale * (0.5f + Mathf.Sin(t * Mathf.PI) * 0.5f);
         transform.localScale = Vector3.one * scale;
     }
 
@@ -74,11 +77,19 @@ public class MortarProjectile : MonoBehaviour
     void Land()
     {
         hasLanded = true;
-        transform.position   = targetPosition;
-        transform.localScale = Vector3.one * impactScale;
+        transform.position = targetPosition;
 
         if (groundSprite != null && spriteRenderer != null)
             spriteRenderer.sprite = groundSprite;
+
+        // Scale the impact visual so its diameter ≈ splashRadius * 2 (true to gameplay)
+        float spriteWidth = spriteRenderer != null && spriteRenderer.sprite != null
+            ? spriteRenderer.sprite.bounds.size.x
+            : 0f;
+        if (spriteWidth > 0.001f)
+            transform.localScale = Vector3.one * (splashRadius * 2f / spriteWidth) * impactScale;
+        else
+            transform.localScale = Vector3.one * impactScale;
 
         ApplySplashDamage();
         StartCoroutine(DestroyAfterImpact());

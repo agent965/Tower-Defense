@@ -33,7 +33,7 @@ public class MortarTower : MonoBehaviour
 
     [Header("Sprite Size")]
     [Tooltip("Pixels per unit for auto-loaded sprites. Increase to make sprites smaller.")]
-    public float pixelsPerUnit = 512f;
+    public float pixelsPerUnit = 128f;
 
     [Header("Combat")]
     public float range        = 4f;
@@ -149,6 +149,8 @@ public class MortarTower : MonoBehaviour
         // Switch to Level2 visuals on first upgrade
         if (upgradeLevel == 1 && currentLevel == TowerLevel.Level1)
             SetLevel(TowerLevel.Level2);
+
+        UpgradeEffect.Play(transform);
     }
 
     public void SetBuff(float dmgMult, float cdMult)

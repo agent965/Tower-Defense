@@ -1,2 +1,17 @@
 fileFormatVersion: 2
 guid: 3c80bb82fb25c5c49ac0b2c864cd87b7
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - basicTowerSprite: {fileID: 5455236142457474187, guid: 83a2b0c2ad7977745b04cd57b0b86857, type: 3}
+  - sniperTowerSprite: {instanceID: 0}
+  - sprayTowerSprite: {instanceID: 0}
+  - rapidTowerSprite: {instanceID: 0}
+  - mortarTowerSprite: {instanceID: 0}
+  - buffTowerSprite: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

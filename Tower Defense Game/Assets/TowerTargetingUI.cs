@@ -232,7 +232,7 @@ public class TowerTargetingUI : MonoBehaviour
         if (upgradeBtnText != null)
             upgradeBtnText.text = isMax
                 ? "MAX LEVEL"
-                : $"Upgrade  {cost}g\n<size=16>{desc}</size>";
+                : $"Upgrade  {cost}g\n<size=18>{desc}</size>";
     }
 
     // ── Sell ───────────────────────────────────────────────────────────────
@@ -381,7 +381,7 @@ public class TowerTargetingUI : MonoBehaviour
         GameObject statsObj      = new GameObject("StatsText");
         statsObj.transform.SetParent(panel.transform, false);
         statsText                = statsObj.AddComponent<TextMeshProUGUI>();
-        statsText.fontSize       = 22;
+        statsText.fontSize       = 26;
         statsText.lineSpacing    = 8f;
         statsText.alignment      = TextAlignmentOptions.Left;
         statsText.color          = new Color(0.7f, 0.7f, 0.7f, 1f);
@@ -389,23 +389,23 @@ public class TowerTargetingUI : MonoBehaviour
         statsRT.anchorMin        = new Vector2(0.5f, 1f);
         statsRT.anchorMax        = new Vector2(0.5f, 1f);
         statsRT.pivot            = new Vector2(0.5f, 1f);
-        statsRT.sizeDelta        = new Vector2(200f, 155f);
+        statsRT.sizeDelta        = new Vector2(200f, 175f);
         statsRT.anchoredPosition = new Vector2(0f, -175f);
 
         // ── TARGETING section ─────────────────────────────────────────────
-        MakeSectionLabel(panel, "TARGETING", new Vector2(0f, -345f));
-        firstBtn     = MakeButton(panel, "First",     new Vector2(0f, -390f), () => SetMode(TargetMode.First),     new Color(0.22f, 0.22f, 0.22f, 1f));
-        lastBtn      = MakeButton(panel, "Last",      new Vector2(0f, -470f), () => SetMode(TargetMode.Last),      new Color(0.22f, 0.22f, 0.22f, 1f));
-        strongestBtn = MakeButton(panel, "Strongest", new Vector2(0f, -550f), () => SetMode(TargetMode.Strongest), new Color(0.22f, 0.22f, 0.22f, 1f));
+        MakeSectionLabel(panel, "TARGETING", new Vector2(0f, -355f));
+        firstBtn     = MakeButton(panel, "First",     new Vector2(0f, -405f), () => SetMode(TargetMode.First),     new Color(0.22f, 0.22f, 0.22f, 1f));
+        lastBtn      = MakeButton(panel, "Last",      new Vector2(0f, -495f), () => SetMode(TargetMode.Last),      new Color(0.22f, 0.22f, 0.22f, 1f));
+        strongestBtn = MakeButton(panel, "Strongest", new Vector2(0f, -585f), () => SetMode(TargetMode.Strongest), new Color(0.22f, 0.22f, 0.22f, 1f));
 
         // ── UPGRADE section ───────────────────────────────────────────────
-        MakeSectionLabel(panel, "UPGRADE", new Vector2(0f, -638f));
-        upgradeBtn     = MakeButton(panel, "", new Vector2(0f, -683f), DoUpgrade, new Color(0.55f, 0.4f, 0.05f, 1f));
+        MakeSectionLabel(panel, "UPGRADE", new Vector2(0f, -680f));
+        upgradeBtn     = MakeButton(panel, "", new Vector2(0f, -730f), DoUpgrade, new Color(0.55f, 0.4f, 0.05f, 1f), height: 95);
         upgradeBtnText = upgradeBtn.GetComponentInChildren<TextMeshProUGUI>();
 
         // ── SELL button ───────────────────────────────────────────────────
-        MakeSectionLabel(panel, "──────────────────", new Vector2(0f, -765f));
-        sellBtn     = MakeButton(panel, "", new Vector2(0f, -805f), DoSell, new Color(0.55f, 0.1f, 0.1f, 1f));
+        MakeSectionLabel(panel, "──────────────────", new Vector2(0f, -835f));
+        sellBtn     = MakeButton(panel, "", new Vector2(0f, -865f), DoSell, new Color(0.55f, 0.1f, 0.1f, 1f));
         sellBtnText = sellBtn.GetComponentInChildren<TextMeshProUGUI>();
     }
 
@@ -418,19 +418,19 @@ public class TowerTargetingUI : MonoBehaviour
         rt.anchorMin        = new Vector2(0.5f, 1f);
         rt.anchorMax        = new Vector2(0.5f, 1f);
         rt.pivot            = new Vector2(0.5f, 1f);
-        rt.sizeDelta        = new Vector2(200f, 42f);
+        rt.sizeDelta        = new Vector2(200f, 48f);
         rt.anchoredPosition = pos;
 
         TextMeshProUGUI tmp = obj.AddComponent<TextMeshProUGUI>();
         tmp.text      = label;
-        tmp.fontSize  = 20;
+        tmp.fontSize  = 24;
         tmp.fontStyle = FontStyles.Bold;
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.color     = new Color(0.6f, 0.6f, 0.6f, 1f);
     }
 
     Button MakeButton(GameObject parent, string label, Vector2 pos,
-                      UnityEngine.Events.UnityAction onClick, Color baseColor)
+                      UnityEngine.Events.UnityAction onClick, Color baseColor, float height = 80f)
     {
         GameObject obj = new GameObject(label + "Btn");
         obj.transform.SetParent(parent.transform, false);
@@ -439,7 +439,7 @@ public class TowerTargetingUI : MonoBehaviour
         rt.anchorMin        = new Vector2(0.5f, 1f);
         rt.anchorMax        = new Vector2(0.5f, 1f);
         rt.pivot            = new Vector2(0.5f, 1f);
-        rt.sizeDelta        = new Vector2(200f, 70f);
+        rt.sizeDelta        = new Vector2(200f, height);
         rt.anchoredPosition = pos;
 
         Image img   = obj.AddComponent<Image>();
@@ -459,7 +459,7 @@ public class TowerTargetingUI : MonoBehaviour
         textObj.transform.SetParent(obj.transform, false);
         TextMeshProUGUI tmp      = textObj.AddComponent<TextMeshProUGUI>();
         tmp.text                 = label;
-        tmp.fontSize             = 22;
+        tmp.fontSize             = 26;
         tmp.fontStyle            = FontStyles.Bold;
         tmp.alignment            = TextAlignmentOptions.Center;
         tmp.color                = Color.white;

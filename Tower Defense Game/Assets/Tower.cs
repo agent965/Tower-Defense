@@ -92,6 +92,8 @@ public class Tower : MonoBehaviour
         rng   *= u.rangeMult;
         atkCd *= u.cooldownMult;
         sVal  += u.cost * 0.5;
+
+        UpgradeEffect.Play(transform);
     }
 
     public void SetBuff(float dmgMult, float cdMult)
@@ -228,18 +230,40 @@ public class Tower : MonoBehaviour
         return proj;
     }
 
+    private SpriteRenderer cachedSR;
+    private bool wasAimingLeft;
+
     private void RotateToward(Transform target)
     {
         if (target == null) return;
 
         Vector2 dir = target.position - transform.position;
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+        // Aim with rotation in [-90, 90] only, then mirror sprite when target is left.
+        // Keeps the tower right-side-up regardless of aim direction.
+        // Math: with flipX on, the sprite's "+X" renders at world angle (rot + 180),
+        // so to aim at world angle beta we set rot = beta - 180.
+        float beta = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        bool aimingLeft = beta > 90f || beta < -90f;
+        float angle = aimingLeft ? beta - 180f : beta;
+
+        if (cachedSR == null) cachedSR = GetComponent<SpriteRenderer>();
+        if (cachedSR != null) cachedSR.flipX = aimingLeft;
 
         Quaternion targetRotation = Quaternion.Euler(0f, 0f, angle);
-        transform.rotation = Quaternion.RotateTowards(
-            transform.rotation,
-            targetRotation,
-            rotationSpeed * Time.deltaTime
-        );
+
+        // When the flip state changes, snap rotation instantly — otherwise
+        // RotateTowards would sweep the long way around 180° because the
+        // target rotation jumped while the visual is unchanged (flipX compensates).
+        if (aimingLeft != wasAimingLeft)
+            transform.rotation = targetRotation;
+        else
+            transform.rotation = Quaternion.RotateTowards(
+                transform.rotation,
+                targetRotation,
+                rotationSpeed * Time.deltaTime
+            );
+
+        wasAimingLeft = aimingLeft;
     }
 }

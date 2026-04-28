@@ -14,7 +14,6 @@ public class TowerPlacer : MonoBehaviour
     public Sprite sniperTowerSprite;
     public Sprite sprayTowerSprite;
     public Sprite rapidTowerSprite;
-    public Sprite mortarTowerSprite;
     public Sprite buffTowerSprite;
 
     // Tower type definitions
@@ -101,20 +100,7 @@ public class TowerPlacer : MonoBehaviour
         }
     }
 
-    private static Color GetTowerColor(TowerType type)
-    {
-        switch (type)
-        {
-            case TowerType.Basic:  return new Color(0.3f, 0.8f, 1f, 1f);   // light blue
-            case TowerType.Sniper: return new Color(1f, 0.3f, 0.3f, 1f);   // red
-            case TowerType.Spray:  return new Color(0.3f, 1f, 0.3f, 1f);   // green
-            case TowerType.Rapid:  return new Color(1f, 0.8f, 0.2f, 1f);   // yellow
-            case TowerType.Slow:   return new Color(1f, 0.8f, 0.2f, 1f);   // yellow
-            case TowerType.Mortar: return new Color(0.6f, 0.4f, 0.2f, 1f); // brown
-            case TowerType.Buff:   return new Color(0.7f, 0.3f, 1f, 1f);   // purple
-            default: return Color.white;
-        }
-    }
+    private static Sprite cachedMortarPreview;
 
     private Sprite GetTowerSprite(TowerType type)
     {
@@ -125,10 +111,27 @@ public class TowerPlacer : MonoBehaviour
             case TowerType.Spray:  return sprayTowerSprite;
             case TowerType.Rapid:  return rapidTowerSprite;
             case TowerType.Slow:   return rapidTowerSprite;
-            case TowerType.Mortar: return mortarTowerSprite;
+            case TowerType.Mortar: return LoadMortarPreview();
             case TowerType.Buff:   return buffTowerSprite;
             default: return basicTowerSprite;
         }
+    }
+
+    // MortarTower loads its runtime sprites from Resources/ at PPU 128.
+    // Match that here so the preview size equals the placed tower's size.
+    private static Sprite LoadMortarPreview()
+    {
+        if (cachedMortarPreview != null) return cachedMortarPreview;
+        Texture2D tex = Resources.Load<Texture2D>("Mortar/Lv1/Idle");
+        if (tex == null) return null;
+        tex.filterMode = FilterMode.Point;
+        cachedMortarPreview = Sprite.Create(
+            tex,
+            new Rect(0, 0, tex.width, tex.height),
+            new Vector2(0.5f, 0.5f),
+            128f
+        );
+        return cachedMortarPreview;
     }
 
     private static float GetTowerRange(TowerType type)
@@ -247,9 +250,7 @@ public class TowerPlacer : MonoBehaviour
         isPlacing = true;
         currentTowerType = type;
 
-        Color towerColor = GetTowerColor(type);
-        Color previewColor = new Color(towerColor.r, towerColor.g, towerColor.b, 0.5f);
-        preview = CreateTowerVisual(previewColor, GetTowerSprite(type));
+        preview = CreateTowerVisual(new Color(1f, 1f, 1f, 0.5f), GetTowerSprite(type));
         previewRenderer = preview.GetComponent<SpriteRenderer>();
 
         // Create range indicator as child of preview
@@ -309,9 +310,8 @@ public class TowerPlacer : MonoBehaviour
         Collider2D overlap = Physics2D.OverlapCircle(position, placementCheckRadius, placementBlockedLayer);
         bool canPlace = overlap == null && EconomyManager.Instance.CanAfford(GetTowerCost(currentTowerType));
 
-        Color towerColor = GetTowerColor(currentTowerType);
         if (canPlace)
-            previewRenderer.color = new Color(towerColor.r, towerColor.g, towerColor.b, 0.5f);
+            previewRenderer.color = new Color(1f, 1f, 1f, 0.5f);
         else
             previewRenderer.color = new Color(1f, 0.2f, 0.2f, 0.5f); // red tint = can't place
     }
@@ -330,8 +330,7 @@ public class TowerPlacer : MonoBehaviour
             return;
 
         // Create the actual tower
-        Color color = GetTowerColor(currentTowerType);
-        GameObject tower = CreateTowerVisual(color, GetTowerSprite(currentTowerType));
+        GameObject tower = CreateTowerVisual(Color.white, GetTowerSprite(currentTowerType));
         tower.transform.position = position;
         tower.name = currentTowerType.ToString() + "Tower";
         tower.layer = LayerMask.NameToLayer("PlacementBlocked");
