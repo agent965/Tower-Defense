@@ -91,6 +91,9 @@ public class MortarProjectile : MonoBehaviour
         else
             transform.localScale = Vector3.one * impactScale;
 
+        // Screen shake — magnitude scales gently with splash size
+        CameraShake.Shake(0.18f, 0.1f + splashRadius * 0.04f);
+
         ApplySplashDamage();
         StartCoroutine(DestroyAfterImpact());
     }

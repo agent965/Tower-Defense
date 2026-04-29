@@ -4,6 +4,7 @@ public class Enemy : MonoBehaviour
     public float moveSpeed = 2f;
     public float maxHP = 100f;
     public int goldValue = 10;
+    public bool isBoss = false;
     private float currentHP;
 
     private EnemyHealthBar healthBar;
@@ -125,18 +126,40 @@ public class Enemy : MonoBehaviour
     {
         currentHP -= damage;
         healthBar?.UpdateBar(currentHP, maxHP);
+
+        // Floating damage number — golden-yellow for normal hits, red for big ones
+        Color dmgColor = damage >= 50f
+            ? new Color(1f, 0.4f, 0.3f, 1f)
+            : new Color(1f, 0.9f, 0.3f, 1f);
+        FloatingText.Spawn(transform.position, ((int)damage).ToString(), dmgColor);
+
+        // Bosses shake the camera when they're hit
+        if (isBoss)
+            CameraShake.Shake(0.12f, 0.06f);
+
         if (currentHP <= 0)
         {
             Die();
         }
     }
-    
+
     void Die()
     {
         OnEnemyDestroyed?.Invoke();
 
         if (EconomyManager.Instance != null)
             EconomyManager.Instance.AddGold(goldValue);
+
+        // Coin pop — bigger and brighter than damage numbers
+        FloatingText.Spawn(
+            transform.position,
+            $"+{goldValue}g",
+            new Color(1f, 0.85f, 0.15f, 1f),
+            fontSize: 5f
+        );
+
+        // Hit-stop on every kill — short enough not to feel sluggish
+        HitStop.Freeze(0.05f);
 
         Destroy(gameObject);
     }
