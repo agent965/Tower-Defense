@@ -89,6 +89,15 @@ public class Enemy : MonoBehaviour
                 TakeDamage(2);
             }
         }
+        else if (debuffed == "Poison")
+        {
+            debuffTimer += 0.02;
+            if (debuffTimer > 1)
+            {
+                debuffTimer = 0;
+                TakeDamage(10);
+            }
+        }
     }
     void Move()
     {
@@ -196,6 +205,12 @@ public class Enemy : MonoBehaviour
         {
             slowFactor = 0.5f;
             slowDuration = 3f;
+            DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Slow, 3f);
+        }
+        else if (db == "Poison")
+        {
+            slowDuration = 3f;
+            DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Poison, 3f);
         }
     }
 }

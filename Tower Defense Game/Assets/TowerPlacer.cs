@@ -163,7 +163,7 @@ public class TowerPlacer : MonoBehaviour
                 });
                 break;
             case TowerType.Sniper:
-                towerScript.init_Tower(50, 3, 6f, 15.0, 3.0, cost, cost / 2, 1, true, "none");
+                towerScript.init_Tower(50, 3, 6f, 15.0, 3.0, cost, cost / 2, 1, true, "Poison");
                 towerScript.SetUpgrades(new TowerUpgradeData[]
                 {
                     new TowerUpgradeData { cost = 125, dmgAdd = 40, rangeMult = 1.15f, cooldownMult = 1f, description = "+40 DMG  +15% RNG" },
@@ -179,7 +179,7 @@ public class TowerPlacer : MonoBehaviour
                 });
                 break;
             case TowerType.Rapid:
-                towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "none");
+                towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "Slow");
                 towerScript.SetUpgrades(new TowerUpgradeData[]
                 {
                     new TowerUpgradeData { cost = 60, dmgAdd = 10, rangeMult = 1f, cooldownMult = 0.8f,  description = "+10 DMG  -20% CD" },
