@@ -54,11 +54,14 @@ public class Tower : MonoBehaviour
         detectionLayer = ~0;
     }
 
-    public double GetSellValue() { return sVal; }
-    public double GetBuyValue()  { return bVal; }
-    public int    GetDamage()    => (int)dmg;
-    public float  GetRange()     => rng;
-    public float  GetCooldown()  => (float)atkCd;
+    public double GetSellValue()          { return sVal; }
+    public double GetBuyValue()           { return bVal; }
+    public int    GetDamage()             => (int)dmg;
+    public float  GetRange()              => rng;
+    public float  GetCooldown()           => (float)atkCd;
+    public float  GetDamageMultiplier()   => damageMultiplier;
+    public float  GetCooldownMultiplier() => cooldownMultiplier;
+    public bool   IsBuffed()              => damageMultiplier > 1f || cooldownMultiplier > 1f;
 
     // ── Upgrade system ─────────────────────────────────────────────────────
 

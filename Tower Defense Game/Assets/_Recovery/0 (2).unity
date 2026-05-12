@@ -4216,11 +4216,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   placementCheckRadius: 0.4
-  basicTowerSprite: {fileID: 6743178796903668560, guid: 053897c5990bb6a42b73cca1b24baa42, type: 3}
-  sniperTowerSprite: {fileID: 0}
-  sprayTowerSprite: {fileID: 0}
-  rapidTowerSprite: {fileID: 0}
-  mortarTowerSprite: {fileID: 0}
+  basicTowerSprite: {fileID: 3803529926033046183, guid: 88599d301a490c34ea766411a3b95d48, type: 3}
+  sniperTowerSprite: {fileID: 7907565324154497081, guid: a640c70759334dc4d905ed7cdd632dda, type: 3}
+  sprayTowerSprite: {fileID: -7989006520667686032, guid: 2315a538cfff4f04a95ea02e21e49e7c, type: 3}
+  rapidTowerSprite: {fileID: -9181417348902859373, guid: 93c618f5a3fbaba4799a8d5cafc9d767, type: 3}
   buffTowerSprite: {fileID: 0}
 --- !u!4 &1798135724
 Transform:

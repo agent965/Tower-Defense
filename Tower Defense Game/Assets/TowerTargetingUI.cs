@@ -59,6 +59,9 @@ public class TowerTargetingUI : MonoBehaviour
 
     void OnGoldChanged(int _) => RefreshUpgradeButton();
 
+    private float statRefreshTimer = 0f;
+    private const float StatRefreshInterval = 0.5f;
+
     void Update()
     {
         if (panel == null || !panel.activeSelf) return;
@@ -66,8 +69,15 @@ public class TowerTargetingUI : MonoBehaviour
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             HidePanel();
 
-        if (currentTower == null)
-            HidePanel();
+        if (currentTower == null) { HidePanel(); return; }
+
+        // Periodically refresh stats so buff status and buffed-tower count stay current
+        statRefreshTimer += Time.deltaTime;
+        if (statRefreshTimer >= StatRefreshInterval)
+        {
+            statRefreshTimer = 0f;
+            RefreshStats();
+        }
     }
 
     // ── Public API ─────────────────────────────────────────────────────────
@@ -115,23 +125,45 @@ public class TowerTargetingUI : MonoBehaviour
         Tower t = currentTower.GetComponent<Tower>();
         if (t != null)
         {
+            string buffLine = t.IsBuffed()
+                ? $"\n<color=#44ff88>BUFFED  +{Mathf.RoundToInt((t.GetDamageMultiplier() - 1) * 100)}% DMG" +
+                  $"  +{Mathf.RoundToInt((t.GetCooldownMultiplier() - 1) * 100)}% SPD</color>"
+                : "";
             statsText.text =
                 $"DMG    <color=white>{t.GetDamage()}</color>\n" +
                 $"RNG    <color=white>{t.GetRange():0.0}</color>\n" +
                 $"CD     <color=white>{t.GetCooldown():0.00}s</color>\n" +
-                $"LVL    <color=white>{t.GetUpgradeLevel()} / {(t.IsMaxLevel() ? t.GetUpgradeLevel() : t.GetUpgradeLevel() + 1)}</color>";
+                $"LVL    <color=white>{t.GetUpgradeLevel()} / {(t.IsMaxLevel() ? t.GetUpgradeLevel() : t.GetUpgradeLevel() + 1)}</color>" +
+                buffLine;
             return;
         }
 
         MortarTower mt = currentTower.GetComponent<MortarTower>();
         if (mt != null)
         {
+            string buffLine = mt.IsBuffed()
+                ? $"\n<color=#44ff88>BUFFED  +{Mathf.RoundToInt((mt.GetDamageMultiplier() - 1) * 100)}% DMG" +
+                  $"  +{Mathf.RoundToInt((mt.GetCooldownMultiplier() - 1) * 100)}% SPD</color>"
+                : "";
             statsText.text =
                 $"DMG    <color=white>{(int)mt.damage}</color>\n" +
                 $"RNG    <color=white>{mt.range:0.0}</color>\n" +
                 $"CD     <color=white>{mt.attackCooldown:0.00}s</color>\n" +
                 $"SPLASH <color=white>{mt.splashRadius:0.0}</color>\n" +
-                $"LVL    <color=white>{mt.GetUpgradeLevel()} / {(mt.IsMaxLevel() ? mt.GetUpgradeLevel() : mt.GetUpgradeLevel() + 1)}</color>";
+                $"LVL    <color=white>{mt.GetUpgradeLevel()} / {(mt.IsMaxLevel() ? mt.GetUpgradeLevel() : mt.GetUpgradeLevel() + 1)}</color>" +
+                buffLine;
+            return;
+        }
+
+        BuffTower bt = currentTower.GetComponent<BuffTower>();
+        if (bt != null)
+        {
+            int buffCount = bt.GetBuffedCount();
+            statsText.text =
+                $"RNG    <color=white>{bt.range:0.0}</color>\n" +
+                $"DMG    <color=#44ff88>+{Mathf.RoundToInt((bt.damageMultiplier - 1) * 100)}%</color>\n" +
+                $"SPD    <color=#44ff88>+{Mathf.RoundToInt((bt.cooldownMultiplier - 1) * 100)}%</color>\n" +
+                $"BUFFING <color=white>{buffCount} tower{(buffCount == 1 ? "" : "s")}</color>";
         }
     }
 
@@ -204,6 +236,16 @@ public class TowerTargetingUI : MonoBehaviour
     {
         if (upgradeBtn == null || currentTower == null) return;
 
+        // Buff towers have no upgrades — show a disabled placeholder
+        if (currentTower.GetComponent<BuffTower>() != null)
+        {
+            upgradeBtn.interactable = false;
+            Image btImg = upgradeBtn.GetComponent<Image>();
+            if (btImg != null) btImg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+            if (upgradeBtnText != null) upgradeBtnText.text = "No Upgrades";
+            return;
+        }
+
         bool isMax   = false;
         int  cost    = 0;
         string desc  = "";
@@ -245,7 +287,10 @@ public class TowerTargetingUI : MonoBehaviour
         if (t != null) { TowerPlacer.Instance.SellTower(t); HidePanel(); return; }
 
         MortarTower mt = currentTower.GetComponent<MortarTower>();
-        if (mt != null) { TowerPlacer.Instance.SellMortarTower(mt); HidePanel(); }
+        if (mt != null) { TowerPlacer.Instance.SellMortarTower(mt); HidePanel(); return; }
+
+        BuffTower bt = currentTower.GetComponent<BuffTower>();
+        if (bt != null) { TowerPlacer.Instance.SellBuffTower(bt); HidePanel(); }
     }
 
     void RefreshSellButton()
@@ -258,6 +303,9 @@ public class TowerTargetingUI : MonoBehaviour
 
         MortarTower mt = currentTower.GetComponent<MortarTower>();
         if (mt != null) sellVal = (int)mt.GetSellValue();
+
+        BuffTower bt = currentTower.GetComponent<BuffTower>();
+        if (bt != null) sellVal = (int)bt.GetSellValue();
 
         sellBtnText.text = $"Sell  {sellVal}g";
     }
@@ -272,6 +320,9 @@ public class TowerTargetingUI : MonoBehaviour
 
         MortarTower mt = tower.GetComponent<MortarTower>();
         if (mt != null) range = mt.range;
+
+        BuffTower bt = tower.GetComponent<BuffTower>();
+        if (bt != null) range = bt.range;
 
         if (range <= 0f) return;
 

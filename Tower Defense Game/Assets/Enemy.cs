@@ -9,6 +9,8 @@ public class Enemy : MonoBehaviour
 
     private EnemyHealthBar healthBar;
 
+    private EnemyType enemyType = EnemyType.Basic;
+
     private Transform[] waypoints;
     private int currentWaypointIndex = 0;
     private string debuffed;
@@ -157,7 +159,7 @@ public class Enemy : MonoBehaviour
         OnEnemyDestroyed?.Invoke();
 
         if (EconomyManager.Instance != null)
-            EconomyManager.Instance.AddGold(goldValue);
+            EconomyManager.Instance.AwardKillGold(enemyType, isBoss);
 
         // Coin pop — bigger and brighter than damage numbers
         FloatingText.Spawn(
@@ -175,6 +177,8 @@ public class Enemy : MonoBehaviour
 
     public void InitEnemy(EnemyType type, Sprite sprite)
     {
+        enemyType = type;
+
         // Stats (maxHP, moveSpeed, goldValue) are set on the prefab in the Inspector
 
         if (sprite != null)
@@ -185,6 +189,16 @@ public class Enemy : MonoBehaviour
         }
 
         healthBar.Initialize(maxHP);
+    }
+
+    // Called by WaveManager after InitEnemy to apply per-wave difficulty scaling.
+    // Must be called before Start() runs (i.e. same frame as Instantiate).
+    public void ScaleStats(float hpMult, float speedMult, float goldMult = 1f)
+    {
+        maxHP      *= hpMult;
+        moveSpeed  *= speedMult;
+        goldValue   = Mathf.RoundToInt(goldValue * goldMult);
+        healthBar?.Initialize(maxHP);
     }
 
     public void ReachedEnd()

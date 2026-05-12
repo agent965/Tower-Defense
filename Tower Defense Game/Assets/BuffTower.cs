@@ -21,8 +21,9 @@ public class BuffTower : MonoBehaviour
         sellValue = sVal;
     }
 
-    public double GetSellValue() => sellValue;
-    public double GetBuyValue()  => buyValue;
+    public double GetSellValue()  => sellValue;
+    public double GetBuyValue()   => buyValue;
+    public int    GetBuffedCount() => buffedTowers.Count + buffedMortars.Count;
 
     void FixedUpdate()
     {

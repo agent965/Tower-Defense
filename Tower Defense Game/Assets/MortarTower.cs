@@ -109,8 +109,11 @@ public class MortarTower : MonoBehaviour
         SetLevel(level);
     }
 
-    public double GetSellValue() => sellValue;
-    public double GetBuyValue()  => buyValue;
+    public double GetSellValue()          => sellValue;
+    public double GetBuyValue()           => buyValue;
+    public float  GetDamageMultiplier()   => damageMultiplier;
+    public float  GetCooldownMultiplier() => cooldownMultiplier;
+    public bool   IsBuffed()              => damageMultiplier > 1f || cooldownMultiplier > 1f;
 
     // ── Upgrade system ─────────────────────────────────────────────────────
 
