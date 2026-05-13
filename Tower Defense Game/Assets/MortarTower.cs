@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class MortarTower : MonoBehaviour
@@ -46,8 +47,9 @@ public class MortarTower : MonoBehaviour
     public double buyValue;
     public double sellValue;
 
-    private float damageMultiplier = 1f;
+    private float damageMultiplier  = 1f;
     private float cooldownMultiplier = 1f;
+    private readonly Dictionary<BuffTower, (float dmg, float cd)> activeBuffs = new Dictionary<BuffTower, (float, float)>();
 
     // Runtime sprite sets
     private Sprite[] currentIdle;
@@ -156,16 +158,27 @@ public class MortarTower : MonoBehaviour
         UpgradeEffect.Play(transform);
     }
 
-    public void SetBuff(float dmgMult, float cdMult)
+    public void ApplyBuff(BuffTower source, float dmgMult, float cdMult)
     {
-        damageMultiplier = dmgMult;
-        cooldownMultiplier = cdMult;
+        activeBuffs[source] = (dmgMult, cdMult);
+        RecalculateBuffs();
     }
 
-    public void ClearBuff()
+    public void RemoveBuff(BuffTower source)
     {
-        damageMultiplier = 1f;
+        if (activeBuffs.Remove(source))
+            RecalculateBuffs();
+    }
+
+    private void RecalculateBuffs()
+    {
+        damageMultiplier  = 1f;
         cooldownMultiplier = 1f;
+        foreach (var b in activeBuffs.Values)
+        {
+            damageMultiplier  += (b.dmg - 1f);
+            cooldownMultiplier += (b.cd - 1f);
+        }
     }
 
     public void SetLevel(TowerLevel level)

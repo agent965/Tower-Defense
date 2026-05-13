@@ -229,6 +229,14 @@ public class TowerTargetingUI : MonoBehaviour
                 mt.Upgrade();
         }
 
+        BuffTower bt = currentTower.GetComponent<BuffTower>();
+        if (bt != null && !bt.IsMaxLevel())
+        {
+            int cost = bt.GetUpgradeCost();
+            if (EconomyManager.Instance.SpendGold(cost))
+                bt.Upgrade();
+        }
+
         RefreshAll();
     }
 
@@ -236,19 +244,13 @@ public class TowerTargetingUI : MonoBehaviour
     {
         if (upgradeBtn == null || currentTower == null) return;
 
-        // Buff towers have no upgrades — show a disabled placeholder
-        if (currentTower.GetComponent<BuffTower>() != null)
-        {
-            upgradeBtn.interactable = false;
-            Image btImg = upgradeBtn.GetComponent<Image>();
-            if (btImg != null) btImg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
-            if (upgradeBtnText != null) upgradeBtnText.text = "No Upgrades";
-            return;
-        }
-
         bool isMax   = false;
         int  cost    = 0;
         string desc  = "";
+
+        BuffTower bt = currentTower.GetComponent<BuffTower>();
+        if (bt != null)
+        { isMax = bt.IsMaxLevel(); cost = bt.GetUpgradeCost(); desc = bt.GetUpgradeDescription(); }
 
         Tower t = currentTower.GetComponent<Tower>();
         if (t != null)

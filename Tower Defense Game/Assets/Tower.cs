@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Tower : MonoBehaviour
 {
@@ -19,8 +20,9 @@ public class Tower : MonoBehaviour
     private double timeSinceLastAttack = 0;
     private bool fTarget;
     private float rotationSpeed = 360f;
-    private float damageMultiplier = 1f;
+    private float damageMultiplier  = 1f;
     private float cooldownMultiplier = 1f;
+    private readonly Dictionary<BuffTower, (float dmg, float cd)> activeBuffs = new Dictionary<BuffTower, (float, float)>();
 
     void FixedUpdate()
     {
@@ -99,16 +101,29 @@ public class Tower : MonoBehaviour
         UpgradeEffect.Play(transform);
     }
 
-    public void SetBuff(float dmgMult, float cdMult)
+    // Called by BuffTower each tick while this tower is in range
+    public void ApplyBuff(BuffTower source, float dmgMult, float cdMult)
     {
-        damageMultiplier = dmgMult;
-        cooldownMultiplier = cdMult;
+        activeBuffs[source] = (dmgMult, cdMult);
+        RecalculateBuffs();
     }
 
-    public void ClearBuff()
+    // Called by BuffTower when this tower leaves range or the BuffTower is destroyed
+    public void RemoveBuff(BuffTower source)
     {
-        damageMultiplier = 1f;
+        if (activeBuffs.Remove(source))
+            RecalculateBuffs();
+    }
+
+    private void RecalculateBuffs()
+    {
+        damageMultiplier  = 1f;
         cooldownMultiplier = 1f;
+        foreach (var b in activeBuffs.Values)
+        {
+            damageMultiplier  += (b.dmg - 1f);
+            cooldownMultiplier += (b.cd - 1f);
+        }
     }
 
     private Transform FindEnemyInRange()

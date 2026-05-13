@@ -211,8 +211,13 @@ public class TowerPlacer : MonoBehaviour
     private void InitBuffTower(BuffTower buff)
     {
         int cost = GetTowerCost(TowerType.Buff);
-        // +30% damage and +30% attack speed to nearby towers within range 3
+        // Base: +30% damage and +30% attack speed to nearby towers within range 3
         buff.Init(1.3f, 1.3f, 3f, cost, cost / 2);
+        buff.SetUpgrades(new BuffUpgradeData[]
+        {
+            new BuffUpgradeData { cost = 100, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "+5% DMG  +5% SPD" },
+            new BuffUpgradeData { cost = 150, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "+5% DMG  +5% SPD" },
+        });
     }
 
     // --- Public API for UI buttons ---
