@@ -8,6 +8,8 @@ public class Enemy : MonoBehaviour
     private float currentHP;
 
     private EnemyHealthBar healthBar;
+    private EnemyAnimator animator;
+    private bool isDead = false;
 
     private EnemyType enemyType = EnemyType.Basic;
 
@@ -43,6 +45,7 @@ public class Enemy : MonoBehaviour
         gameObject.tag = "Enemy";
 
         healthBar = gameObject.AddComponent<EnemyHealthBar>();
+        animator  = gameObject.AddComponent<EnemyAnimator>();
     }
 
     void Start()
@@ -135,8 +138,11 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
+        if (isDead) return;
+
         currentHP -= damage;
         healthBar?.UpdateBar(currentHP, maxHP);
+        animator?.PlayHit();
 
         // Floating damage number — golden-yellow for normal hits, red for big ones
         Color dmgColor = damage >= 50f
@@ -156,6 +162,9 @@ public class Enemy : MonoBehaviour
 
     void Die()
     {
+        if (isDead) return;
+        isDead = true;
+
         OnEnemyDestroyed?.Invoke();
 
         if (EconomyManager.Instance != null)
@@ -172,7 +181,11 @@ public class Enemy : MonoBehaviour
         // Hit-stop on every kill — short enough not to feel sluggish
         HitStop.Freeze(0.05f);
 
-        Destroy(gameObject);
+        // Play death animation, destroy when finished
+        if (animator != null)
+            animator.PlayDeath(() => Destroy(gameObject));
+        else
+            Destroy(gameObject);
     }
 
     public void InitEnemy(EnemyType type, Sprite sprite)
