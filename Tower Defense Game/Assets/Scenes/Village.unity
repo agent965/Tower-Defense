@@ -5662,6 +5662,85 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1802484415}
   m_CullTransparentMesh: 1
+--- !u!1 &1839197521
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1839197523}
+  - component: {fileID: 1839197522}
+  m_Layer: 0
+  m_Name: TopHUD
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1839197522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1839197521}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87f705ca630e8894fbe0b934e4247231, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TopHUD
+  barHeight: 70
+  barColor: {r: 0.05, g: 0.06, b: 0.1, a: 0.85}
+  accentColor: {r: 1, g: 0.82, b: 0.25, a: 1}
+  hp:
+    icon: {fileID: 0}
+    label: HP
+    color: {r: 1, g: 0.35, b: 0.35, a: 1}
+    tintIcon: 1
+    iconSize: 40
+  gold:
+    icon: {fileID: 0}
+    label: GOLD
+    color: {r: 1, g: 0.85, b: 0.25, a: 1}
+    tintIcon: 1
+    iconSize: 40
+  shield:
+    icon: {fileID: 0}
+    label: SHLD
+    color: {r: 0.45, g: 0.85, b: 1, a: 1}
+    tintIcon: 1
+    iconSize: 40
+  wave:
+    icon: {fileID: 0}
+    label: WAVE
+    color: {r: 0.85, g: 0.6, b: 1, a: 1}
+    tintIcon: 1
+    iconSize: 40
+  enemies:
+    icon: {fileID: 0}
+    label: LEFT
+    color: {r: 1, g: 0.55, b: 0.45, a: 1}
+    tintIcon: 1
+    iconSize: 40
+  showBuyShield: 1
+  buyShieldIcon: {fileID: 0}
+--- !u!4 &1839197523
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1839197521}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1854388632
 GameObject:
   m_ObjectHideFlags: 0
@@ -6345,3 +6424,4 @@ SceneRoots:
   - {fileID: 1671666082}
   - {fileID: 1798135724}
   - {fileID: 1640248168}
+  - {fileID: 1839197523}

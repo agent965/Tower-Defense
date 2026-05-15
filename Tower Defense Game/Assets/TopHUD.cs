@@ -23,7 +23,7 @@ public class TopHUD : MonoBehaviour
 
     [Header("Bar Style")]
     public float barHeight = 70f;
-    public Color barColor       = new Color(0.05f, 0.06f, 0.10f, 0.85f);
+    public Color barColor       = new Color(0.05f, 0.06f, 0.10f, 1f);
     public Color accentColor    = new Color(1f, 0.82f, 0.25f, 1f);
 
     [Header("Stats (drag sprites into Icon, blank Label = icon-only)")]

@@ -46,6 +46,8 @@ public class BasicProjectile : MonoBehaviour
         float radians = angleDegrees * Mathf.Deg2Rad;
         dir = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians)).normalized;
 
+        // Face the firing direction. Set once — the bullet flies straight,
+        // so this stays correct for the bullet's whole life (no spinning).
         transform.rotation = Quaternion.Euler(0, 0, angleDegrees);
     }
 

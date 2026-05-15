@@ -6,59 +6,97 @@ using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {
+    public static MainMenu Instance { get; private set; }
+
     [Header("Scene")]
     public string gameSceneName = "Village";
 
     [Header("Title")]
-    public string titleText = "TOWER DEFENSE";
-    public Sprite titleSprite;          // optional — drag in to replace text
-    public string subtitleText = "";    // optional — small line under title
+    public Sprite titleSprite;                   // your "TITAN DEFENSE" art
+    public string titleFallbackText = "TOWER DEFENSE";  // only shown if no sprite
+    public float  titleWidth  = 780f;
+    public float  titleHeight = 340f;
 
-    [Header("Style")]
-    public Color bgColor          = new Color(0.05f, 0.06f, 0.10f, 1f);
-    public Color accentColor      = new Color(1f, 0.82f, 0.25f, 1f);
-    public Color titleColor       = Color.white;
-    public Color buttonBgColor    = new Color(0.15f, 0.18f, 0.25f, 0.95f);
-    public Color buttonTextColor  = Color.white;
+    [Header("Buttons — layout")]
+    public float buttonWidth   = 560f;
+    public float buttonHeight  = 110f;
+    public float buttonSpacing = 18f;
+    [Tooltip("Vertical offset of the button column from screen center (negative = down).")]
+    public float buttonsYOffset = -120f;
 
-    [Header("Buttons")]
-    public bool showSettings = false;
-    public bool showQuit     = true;
+    [Header("Play")]
+    public Sprite playSprite;
 
-    [Header("Background")]
-    public bool animatedBackground = true;
-    public Color particleColor     = new Color(1f, 1f, 1f, 0.25f);
+    [Header("Loadout")]
+    public bool   showLoadout = true;
+    public Sprite loadoutSprite;
+
+    [Header("Shop")]
+    public bool   showShop = true;
+    public Sprite shopSprite;
+
+    [Header("Settings")]
+    public bool   showSettings = true;
+    public Sprite settingsSprite;
+
+    [Header("Quit")]
+    public bool   showQuit = true;
+    public Sprite quitSprite;
+
+    [Header("Footer (bottom-left)")]
+    public string versionText = "v0.1.0";
+
+    [Header("Social Icons (bottom-right)")]
+    public SocialButton[] socialButtons = new SocialButton[0];
+
+    [System.Serializable]
+    public class SocialButton
+    {
+        public Sprite icon;
+        public string url;
+        public Color  tint = Color.white;
+    }
+
+    [Header("Animation")]
+    public bool playEntryAnimation = false;
 
     private Canvas canvas;
     private RectTransform root;
     private RectTransform titleRoot;
     private RectTransform buttonColumn;
-    private static Sprite cachedDotSprite;
 
     void Awake()
     {
-        // Make sure there's an EventSystem so buttons work
+        Instance = this;
         if (FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
         {
             GameObject es = new GameObject("EventSystem");
             es.AddComponent<UnityEngine.EventSystems.EventSystem>();
-            es.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+            // Use the new Input System's UI module — the legacy StandaloneInputModule
+            // throws an error when the project is set to "Input System Package".
+            es.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
         }
-
         BuildUI();
     }
 
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
+    // Called by Loadout (or any modal panel) to hide/show the main menu UI
+    public void HideUI() { if (canvas != null) canvas.gameObject.SetActive(false); }
+    public void ShowUI() { if (canvas != null) canvas.gameObject.SetActive(true); }
+
     void Start()
     {
-        StartCoroutine(EntryAnimation());
-        if (animatedBackground) StartCoroutine(SpawnBackgroundParticles());
+        if (playEntryAnimation) StartCoroutine(EntryAnimation());
     }
 
     // ── UI construction ──────────────────────────────────────────────────
 
     void BuildUI()
     {
-        // Canvas
         GameObject canvasObj = new GameObject("MainMenuCanvas");
         canvasObj.transform.SetParent(transform, false);
         canvas = canvasObj.AddComponent<Canvas>();
@@ -70,7 +108,6 @@ public class MainMenu : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
         canvasObj.AddComponent<GraphicRaycaster>();
 
-        // Root container = full screen
         GameObject rootObj = new GameObject("Root");
         rootObj.transform.SetParent(canvasObj.transform, false);
         root = rootObj.AddComponent<RectTransform>();
@@ -79,43 +116,10 @@ public class MainMenu : MonoBehaviour
         root.offsetMin = Vector2.zero;
         root.offsetMax = Vector2.zero;
 
-        // Background
-        Image bg = rootObj.AddComponent<Image>();
-        bg.color = bgColor;
-
-        // Vignette (subtle dark border to focus center)
-        BuildVignette(root);
-
-        // Title area
         BuildTitle(root);
-
-        // Button column
         BuildButtons(root);
-
-        // Footer text
         BuildFooter(root);
-    }
-
-    void BuildVignette(RectTransform parent)
-    {
-        // Four dark gradient strips on each edge — fakes a vignette without a shader
-        AddEdgeFade(parent, new Vector2(0f, 0f), new Vector2(1f, 0f), 180f, true);  // bottom
-        AddEdgeFade(parent, new Vector2(0f, 1f), new Vector2(1f, 1f), 180f, false); // top
-    }
-
-    void AddEdgeFade(RectTransform parent, Vector2 aMin, Vector2 aMax, float height, bool fromBottom)
-    {
-        GameObject fade = new GameObject("EdgeFade");
-        fade.transform.SetParent(parent, false);
-        RectTransform rt = fade.AddComponent<RectTransform>();
-        rt.anchorMin = aMin;
-        rt.anchorMax = aMax;
-        rt.pivot     = new Vector2(0.5f, fromBottom ? 0f : 1f);
-        rt.anchoredPosition = Vector2.zero;
-        rt.sizeDelta = new Vector2(0f, height);
-        Image img = fade.AddComponent<Image>();
-        img.color = new Color(0f, 0f, 0f, 0.35f);
-        img.raycastTarget = false;
+        BuildSocialButtons(root);
     }
 
     void BuildTitle(RectTransform parent)
@@ -123,70 +127,30 @@ public class MainMenu : MonoBehaviour
         GameObject titleObj = new GameObject("Title");
         titleObj.transform.SetParent(parent, false);
         titleRoot = titleObj.AddComponent<RectTransform>();
-        titleRoot.anchorMin = new Vector2(0.5f, 0.78f);
-        titleRoot.anchorMax = new Vector2(0.5f, 0.78f);
-        titleRoot.pivot     = new Vector2(0.5f, 0.5f);
-        titleRoot.sizeDelta = new Vector2(1400f, 250f);
+        titleRoot.anchorMin = new Vector2(0f, 1f);
+        titleRoot.anchorMax = new Vector2(0f, 1f);
+        titleRoot.pivot     = new Vector2(0f, 1f);
+        titleRoot.anchoredPosition = new Vector2(50f, -30f);
+        titleRoot.sizeDelta = new Vector2(titleWidth, titleHeight);
 
-        VerticalLayoutGroup vlg = titleObj.AddComponent<VerticalLayoutGroup>();
-        vlg.childAlignment = TextAnchor.MiddleCenter;
-        vlg.spacing = 8f;
-        vlg.childControlHeight = false;
-        vlg.childControlWidth  = true;
-        vlg.childForceExpandWidth = true;
-        vlg.childForceExpandHeight = false;
-
-        // Title — sprite if assigned, otherwise text
         if (titleSprite != null)
         {
-            GameObject img = new GameObject("TitleSprite");
-            img.transform.SetParent(titleObj.transform, false);
-            Image si = img.AddComponent<Image>();
-            si.sprite = titleSprite;
-            si.preserveAspect = true;
-            LayoutElement le = img.AddComponent<LayoutElement>();
-            le.preferredHeight = 180f;
+            Image img = titleObj.AddComponent<Image>();
+            img.sprite = titleSprite;
+            img.preserveAspect = true;
+            img.raycastTarget = false;
         }
-        else
+        else if (!string.IsNullOrEmpty(titleFallbackText))
         {
-            GameObject txt = new GameObject("TitleText");
-            txt.transform.SetParent(titleObj.transform, false);
-            TextMeshProUGUI tmp = txt.AddComponent<TextMeshProUGUI>();
-            tmp.text         = titleText;
-            tmp.fontSize     = 120f;
-            tmp.color        = titleColor;
-            tmp.alignment    = TextAlignmentOptions.Center;
+            TextMeshProUGUI tmp = titleObj.AddComponent<TextMeshProUGUI>();
+            tmp.text         = titleFallbackText;
+            tmp.fontSize     = 110f;
+            tmp.color        = Color.white;
+            tmp.alignment    = TextAlignmentOptions.Left;
             tmp.fontStyle    = FontStyles.Bold;
-            tmp.outlineWidth = 0.15f;
-            tmp.outlineColor = new Color(0f, 0f, 0f, 0.8f);
-            LayoutElement le = txt.AddComponent<LayoutElement>();
-            le.preferredHeight = 160f;
-        }
-
-        // Accent underline
-        GameObject under = new GameObject("Underline");
-        under.transform.SetParent(titleObj.transform, false);
-        RectTransform urt = under.AddComponent<RectTransform>();
-        urt.sizeDelta = new Vector2(420f, 5f);
-        Image ui = under.AddComponent<Image>();
-        ui.color = accentColor;
-        LayoutElement ule = under.AddComponent<LayoutElement>();
-        ule.preferredHeight = 5f;
-        ule.preferredWidth  = 420f;
-
-        // Subtitle
-        if (!string.IsNullOrEmpty(subtitleText))
-        {
-            GameObject sub = new GameObject("Subtitle");
-            sub.transform.SetParent(titleObj.transform, false);
-            TextMeshProUGUI st = sub.AddComponent<TextMeshProUGUI>();
-            st.text         = subtitleText;
-            st.fontSize     = 28f;
-            st.color        = new Color(1f, 1f, 1f, 0.65f);
-            st.alignment    = TextAlignmentOptions.Center;
-            st.fontStyle    = FontStyles.Italic;
-            LayoutElement sle = sub.AddComponent<LayoutElement>();
-            sle.preferredHeight = 36f;
+            tmp.outlineWidth = 0.2f;
+            tmp.outlineColor = Color.black;
+            tmp.raycastTarget = false;
         }
     }
 
@@ -195,35 +159,46 @@ public class MainMenu : MonoBehaviour
         GameObject col = new GameObject("ButtonColumn");
         col.transform.SetParent(parent, false);
         buttonColumn = col.AddComponent<RectTransform>();
-        buttonColumn.anchorMin = new Vector2(0.5f, 0.35f);
-        buttonColumn.anchorMax = new Vector2(0.5f, 0.35f);
-        buttonColumn.pivot     = new Vector2(0.5f, 0.5f);
-        buttonColumn.sizeDelta = new Vector2(420f, 400f);
+        buttonColumn.anchorMin = new Vector2(0f, 0.5f);
+        buttonColumn.anchorMax = new Vector2(0f, 0.5f);
+        buttonColumn.pivot     = new Vector2(0f, 0.5f);
+        buttonColumn.anchoredPosition = new Vector2(60f, buttonsYOffset);
+        buttonColumn.sizeDelta = new Vector2(buttonWidth, 600f);
 
         VerticalLayoutGroup vlg = col.AddComponent<VerticalLayoutGroup>();
-        vlg.childAlignment = TextAnchor.MiddleCenter;
-        vlg.spacing = 18f;
-        vlg.childControlWidth = true;
+        vlg.childAlignment = TextAnchor.MiddleLeft;
+        vlg.spacing = buttonSpacing;
+        vlg.childControlWidth  = true;
         vlg.childControlHeight = false;
-        vlg.childForceExpandWidth = true;
+        vlg.childForceExpandWidth  = true;
+        vlg.childForceExpandHeight = false;
 
-        // Play (primary, larger, pulses)
-        MakeButton(col.transform, "PLAY", 90f, accentColor, new Color(0.1f, 0.1f, 0.12f, 1f), true, () =>
+        MakeMenuButton(col.transform, "PLAY", playSprite, buttonHeight + 8f, true, () =>
         {
             SceneManager.LoadScene(gameSceneName);
         });
 
-        if (showSettings)
-        {
-            MakeButton(col.transform, "SETTINGS", 70f, buttonBgColor, buttonTextColor, false, () =>
+        if (showLoadout)
+            MakeMenuButton(col.transform, "LOADOUT", loadoutSprite, buttonHeight, false, () =>
             {
-                Debug.Log("MainMenu: Settings clicked (no settings scene yet)");
+                if (Loadout.Instance != null) Loadout.Instance.Show();
+                else Debug.LogWarning("MainMenu: No Loadout component found in the scene.");
             });
-        }
+
+        if (showShop)
+            MakeMenuButton(col.transform, "SHOP", shopSprite, buttonHeight, false, () =>
+            {
+                Debug.Log("MainMenu: SHOP clicked");
+            });
+
+        if (showSettings)
+            MakeMenuButton(col.transform, "SETTINGS", settingsSprite, buttonHeight, false, () =>
+            {
+                Debug.Log("MainMenu: SETTINGS clicked");
+            });
 
         if (showQuit)
-        {
-            MakeButton(col.transform, "QUIT", 70f, buttonBgColor, buttonTextColor, false, () =>
+            MakeMenuButton(col.transform, "QUIT", quitSprite, buttonHeight, false, () =>
             {
                 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
@@ -231,152 +206,157 @@ public class MainMenu : MonoBehaviour
                 Application.Quit();
                 #endif
             });
-        }
     }
 
-    Button MakeButton(Transform parent, string label, float height, Color bg, Color textColor, bool primary, System.Action onClick)
+    void MakeMenuButton(Transform parent, string fallbackLabel, Sprite sprite, float height, bool primary, System.Action onClick)
     {
-        GameObject btnObj = new GameObject($"Btn_{label}");
+        GameObject btnObj = new GameObject($"Btn_{fallbackLabel}");
         btnObj.transform.SetParent(parent, false);
 
-        Image bgImg = btnObj.AddComponent<Image>();
-        bgImg.color = bg;
+        Image img = btnObj.AddComponent<Image>();
+        if (sprite != null)
+        {
+            img.sprite = sprite;
+            img.preserveAspect = true;
+        }
+        else
+        {
+            // Fallback flat rectangle so the button is still visible/clickable
+            img.color = new Color(0.18f, 0.20f, 0.26f, 1f);
+        }
 
         Button btn = btnObj.AddComponent<Button>();
-        btn.targetGraphic = bgImg;
+        btn.targetGraphic = img;
         ColorBlock cb = btn.colors;
         cb.normalColor      = Color.white;
-        cb.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
-        cb.pressedColor     = new Color(0.75f, 0.75f, 0.75f, 1f);
-        cb.fadeDuration     = 0.1f;
+        cb.highlightedColor = new Color(0.78f, 0.78f, 0.78f, 1f);  // darker on hover
+        cb.pressedColor     = new Color(0.60f, 0.60f, 0.60f, 1f);  // even darker on press
+        cb.fadeDuration     = 0.08f;
         btn.colors = cb;
         btn.onClick.AddListener(() => onClick?.Invoke());
 
         LayoutElement le = btnObj.AddComponent<LayoutElement>();
         le.preferredHeight = height;
 
-        // Hover scale + (optional) pulse for primary
         ButtonHoverScale hover = btnObj.AddComponent<ButtonHoverScale>();
-        hover.hoverScale = 1.05f;
+        hover.hoverScale = 1.04f;
         hover.pulse      = primary;
 
-        // Label
-        GameObject lbl = new GameObject("Label");
-        lbl.transform.SetParent(btnObj.transform, false);
-        RectTransform lrt = lbl.AddComponent<RectTransform>();
-        lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-        lrt.offsetMin = Vector2.zero; lrt.offsetMax = Vector2.zero;
-        TextMeshProUGUI tmp = lbl.AddComponent<TextMeshProUGUI>();
-        tmp.text         = label;
-        tmp.fontSize     = primary ? 48f : 36f;
-        tmp.color        = primary ? new Color(0.1f, 0.1f, 0.12f, 1f) : textColor;
-        tmp.alignment    = TextAlignmentOptions.Center;
-        tmp.fontStyle    = FontStyles.Bold;
-        tmp.raycastTarget = false;
-
-        return btn;
+        // Show the fallback label text only when no sprite is provided
+        if (sprite == null)
+        {
+            GameObject lblObj = new GameObject("Label");
+            lblObj.transform.SetParent(btnObj.transform, false);
+            RectTransform lrt = lblObj.AddComponent<RectTransform>();
+            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+            lrt.offsetMin = Vector2.zero; lrt.offsetMax = Vector2.zero;
+            TextMeshProUGUI tmp = lblObj.AddComponent<TextMeshProUGUI>();
+            tmp.text         = fallbackLabel;
+            tmp.fontSize     = primary ? 44f : 36f;
+            tmp.color        = Color.white;
+            tmp.alignment    = TextAlignmentOptions.Center;
+            tmp.fontStyle    = FontStyles.Bold;
+            tmp.outlineWidth = 0.2f;
+            tmp.outlineColor = Color.black;
+            tmp.raycastTarget = false;
+        }
     }
 
     void BuildFooter(RectTransform parent)
     {
-        GameObject foot = new GameObject("Footer");
+        if (string.IsNullOrEmpty(versionText)) return;
+        GameObject foot = new GameObject("Version");
         foot.transform.SetParent(parent, false);
         RectTransform rt = foot.AddComponent<RectTransform>();
         rt.anchorMin = new Vector2(0f, 0f);
-        rt.anchorMax = new Vector2(1f, 0f);
-        rt.pivot     = new Vector2(0.5f, 0f);
-        rt.anchoredPosition = new Vector2(0f, 20f);
-        rt.sizeDelta = new Vector2(0f, 30f);
+        rt.anchorMax = new Vector2(0f, 0f);
+        rt.pivot     = new Vector2(0f, 0f);
+        rt.anchoredPosition = new Vector2(30f, 20f);
+        rt.sizeDelta = new Vector2(200f, 30f);
 
         TextMeshProUGUI tmp = foot.AddComponent<TextMeshProUGUI>();
-        tmp.text      = "v0.1   •   Press PLAY to start";
-        tmp.fontSize  = 22f;
-        tmp.color     = new Color(1f, 1f, 1f, 0.35f);
-        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.text         = versionText;
+        tmp.fontSize     = 22f;
+        tmp.color        = Color.white;
+        tmp.alignment    = TextAlignmentOptions.BottomLeft;
+        tmp.fontStyle    = FontStyles.Bold;
+        tmp.outlineWidth = 0.2f;
+        tmp.outlineColor = Color.black;
+        tmp.raycastTarget = false;
     }
 
-    // ── Background particles ─────────────────────────────────────────────
-
-    IEnumerator SpawnBackgroundParticles()
+    void BuildSocialButtons(RectTransform parent)
     {
-        while (true)
+        if (socialButtons == null || socialButtons.Length == 0) return;
+
+        GameObject row = new GameObject("SocialRow");
+        row.transform.SetParent(parent, false);
+        RectTransform rt = row.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(1f, 0f);
+        rt.anchorMax = new Vector2(1f, 0f);
+        rt.pivot     = new Vector2(1f, 0f);
+        rt.anchoredPosition = new Vector2(-30f, 25f);
+        rt.sizeDelta = new Vector2(64f * socialButtons.Length + 16f * (socialButtons.Length - 1), 64f);
+
+        HorizontalLayoutGroup hlg = row.AddComponent<HorizontalLayoutGroup>();
+        hlg.childAlignment = TextAnchor.MiddleRight;
+        hlg.spacing = 12f;
+        hlg.childControlWidth = false;
+        hlg.childControlHeight = false;
+
+        foreach (SocialButton s in socialButtons)
         {
-            SpawnDot();
-            yield return new WaitForSeconds(Random.Range(0.05f, 0.15f));
+            if (s == null || s.icon == null) continue;
+
+            GameObject b = new GameObject("Social");
+            b.transform.SetParent(row.transform, false);
+            Image im = b.AddComponent<Image>();
+            im.sprite = s.icon;
+            im.color  = s.tint;
+            im.preserveAspect = true;
+
+            LayoutElement le = b.AddComponent<LayoutElement>();
+            le.preferredWidth  = 64f;
+            le.preferredHeight = 64f;
+
+            Button btn = b.AddComponent<Button>();
+            btn.targetGraphic = im;
+            string url = s.url;
+            btn.onClick.AddListener(() =>
+            {
+                if (!string.IsNullOrEmpty(url)) Application.OpenURL(url);
+            });
+
+            ButtonHoverScale h = b.AddComponent<ButtonHoverScale>();
+            h.hoverScale = 1.15f;
         }
     }
 
-    void SpawnDot()
-    {
-        if (root == null) return;
-        GameObject dot = new GameObject("BgDot");
-        dot.transform.SetParent(root, false);
-        RectTransform rt = dot.AddComponent<RectTransform>();
-        rt.sizeDelta = Vector2.one * Random.Range(4f, 10f);
-        rt.anchorMin = new Vector2(0.5f, 0f);
-        rt.anchorMax = new Vector2(0.5f, 0f);
-        rt.pivot     = new Vector2(0.5f, 0.5f);
-        rt.anchoredPosition = new Vector2(Random.Range(-960f, 960f), -20f);
-
-        Image img = dot.AddComponent<Image>();
-        img.sprite = GetDotSprite();
-        img.color  = particleColor;
-        img.raycastTarget = false;
-
-        dot.AddComponent<BgDot>().Init(Random.Range(40f, 90f), Random.Range(6f, 14f));
-        // BgDot self-destructs when off-screen
-    }
-
-    static Sprite GetDotSprite()
-    {
-        if (cachedDotSprite != null) return cachedDotSprite;
-        int size = 32;
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        Color[] px = new Color[size * size];
-        Vector2 c = new Vector2(size / 2f, size / 2f);
-        float maxR = size / 2f - 1f;
-        for (int y = 0; y < size; y++)
-        for (int x = 0; x < size; x++)
-        {
-            float d = Vector2.Distance(new Vector2(x, y), c);
-            float a = d > maxR ? 0f : (1f - d / maxR);
-            a *= a;
-            px[y * size + x] = new Color(1f, 1f, 1f, a);
-        }
-        tex.SetPixels(px);
-        tex.Apply();
-        tex.filterMode = FilterMode.Bilinear;
-        cachedDotSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
-        return cachedDotSprite;
-    }
-
-    // ── Entry animation ──────────────────────────────────────────────────
+    // ── Entry animation (optional) ───────────────────────────────────────
 
     IEnumerator EntryAnimation()
     {
-        // Disable interaction during animation
         CanvasGroup cg = canvas.gameObject.AddComponent<CanvasGroup>();
         cg.alpha = 0f;
         cg.interactable = false;
         cg.blocksRaycasts = true;
 
-        // Starting offsets
         Vector3 titleStart = titleRoot.anchoredPosition3D;
         Vector3 btnStart   = buttonColumn.anchoredPosition3D;
-        titleRoot.anchoredPosition3D    = titleStart   + new Vector3(0f,  60f, 0f);
-        buttonColumn.anchoredPosition3D = btnStart     + new Vector3(0f, -60f, 0f);
+        titleRoot.anchoredPosition3D    = titleStart   + new Vector3(0f,  40f, 0f);
+        buttonColumn.anchoredPosition3D = btnStart     + new Vector3(-60f, 0f, 0f);
 
-        float duration = 0.6f;
+        float duration = 0.55f;
         float elapsed = 0f;
         while (elapsed < duration)
         {
             elapsed += Time.unscaledDeltaTime;
             float t = Mathf.Clamp01(elapsed / duration);
-            float e = 1f - Mathf.Pow(1f - t, 3f); // ease-out cubic
+            float e = 1f - Mathf.Pow(1f - t, 3f);
 
             cg.alpha = e;
-            titleRoot.anchoredPosition3D    = Vector3.Lerp(titleStart + new Vector3(0f,  60f, 0f), titleStart, e);
-            buttonColumn.anchoredPosition3D = Vector3.Lerp(btnStart   + new Vector3(0f, -60f, 0f), btnStart,   e);
+            titleRoot.anchoredPosition3D    = Vector3.Lerp(titleStart + new Vector3(0f,  40f, 0f), titleStart, e);
+            buttonColumn.anchoredPosition3D = Vector3.Lerp(btnStart   + new Vector3(-60f, 0f, 0f), btnStart,   e);
             yield return null;
         }
 
@@ -385,74 +365,57 @@ public class MainMenu : MonoBehaviour
     }
 }
 
-// Hover scale + optional pulse for the primary button
+// Add this to any UI Button GameObject for smooth hover scale-up + press-down.
+// Toggle 'pulse' for a gentle idle bounce.
 public class ButtonHoverScale : MonoBehaviour,
     UnityEngine.EventSystems.IPointerEnterHandler,
-    UnityEngine.EventSystems.IPointerExitHandler
+    UnityEngine.EventSystems.IPointerExitHandler,
+    UnityEngine.EventSystems.IPointerDownHandler,
+    UnityEngine.EventSystems.IPointerUpHandler
 {
     public float hoverScale = 1.05f;
     public bool  pulse;
+    [Tooltip("How far (pixels) the button shifts down when held. Negative = down.")]
+    public float pressOffsetY = -6f;
 
-    private Vector3 baseScale;
+    private Vector3 baseScale = Vector3.one;
+    private Vector3 basePosition;
+    private float currentOffsetY;
+    private bool initialized;
     private bool hovered;
+    private bool pressed;
 
-    void Start() { baseScale = transform.localScale; }
+    System.Collections.IEnumerator Start()
+    {
+        // Wait one frame so the parent LayoutGroup can assign our position first.
+        yield return null;
+        baseScale    = transform.localScale;
+        basePosition = transform.localPosition;
+        initialized  = true;
+    }
 
     void Update()
     {
+        if (!initialized) return;
+
+        // Hover scale (with optional idle pulse on primary)
         float targetScale = hovered ? hoverScale : 1f;
         if (pulse && !hovered)
             targetScale = 1f + Mathf.Sin(Time.unscaledTime * Mathf.PI * 2f) * 0.025f;
-
         transform.localScale = Vector3.Lerp(transform.localScale, baseScale * targetScale, Time.unscaledDeltaTime * 12f);
+
+        // Press-down offset
+        float target = pressed ? pressOffsetY : 0f;
+        currentOffsetY = Mathf.Lerp(currentOffsetY, target, Time.unscaledDeltaTime * 22f);
+        transform.localPosition = basePosition + new Vector3(0f, currentOffsetY, 0f);
     }
 
     public void OnPointerEnter(UnityEngine.EventSystems.PointerEventData e) { hovered = true; }
-    public void OnPointerExit(UnityEngine.EventSystems.PointerEventData e)  { hovered = false; }
-}
-
-// Drifts up, fades, self-destructs
-public class BgDot : MonoBehaviour
-{
-    private float speed;
-    private float drift;
-    private float seed;
-    private RectTransform rt;
-    private Image img;
-    private Color baseColor;
-
-    public void Init(float speed, float drift)
+    public void OnPointerExit(UnityEngine.EventSystems.PointerEventData e)
     {
-        this.speed = speed;
-        this.drift = drift;
-        seed = Random.Range(0f, 100f);
+        hovered = false;
+        pressed = false; // drag-off shouldn't leave it stuck pressed
     }
-
-    void Start()
-    {
-        rt  = GetComponent<RectTransform>();
-        img = GetComponent<Image>();
-        if (img != null) baseColor = img.color;
-    }
-
-    void Update()
-    {
-        if (rt == null) return;
-        Vector2 pos = rt.anchoredPosition;
-        pos.y += speed * Time.unscaledDeltaTime;
-        pos.x += Mathf.Sin((Time.unscaledTime + seed) * 1.5f) * drift * Time.unscaledDeltaTime;
-        rt.anchoredPosition = pos;
-
-        // Fade as it rises past ~80% of screen
-        float screenH = Screen.height;
-        // Convert anchoredPosition (bottom-anchored center) into a 0..1 vertical fraction
-        float frac = pos.y / 1080f;
-        if (frac > 0.7f)
-        {
-            float fade = 1f - Mathf.InverseLerp(0.7f, 1.05f, frac);
-            if (img != null) img.color = new Color(baseColor.r, baseColor.g, baseColor.b, baseColor.a * fade);
-        }
-
-        if (frac > 1.05f) Destroy(gameObject);
-    }
+    public void OnPointerDown(UnityEngine.EventSystems.PointerEventData e) { pressed = true; }
+    public void OnPointerUp(UnityEngine.EventSystems.PointerEventData e)   { pressed = false; }
 }

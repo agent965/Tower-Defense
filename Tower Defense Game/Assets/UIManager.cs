@@ -182,12 +182,12 @@ public class UIManager : MonoBehaviour
         if (StartWaveButton != null)
             StartWaveButton.gameObject.SetActive(building);
 
-        // Tower buttons visible during building AND during waves
-        if (BuyBasicTowerButton != null)  BuyBasicTowerButton.gameObject.SetActive(canBuy);
-        if (BuySniperTowerButton != null) BuySniperTowerButton.gameObject.SetActive(canBuy);
-        if (BuySprayTowerButton != null)  BuySprayTowerButton.gameObject.SetActive(canBuy);
-        if (BuyRapidTowerButton != null)  BuyRapidTowerButton.gameObject.SetActive(canBuy);
-        if (BuyMortarTowerButton != null) BuyMortarTowerButton.gameObject.SetActive(canBuy);
+        // Tower buttons visible during building/wave — AND only if in the loadout
+        if (BuyBasicTowerButton != null)  BuyBasicTowerButton.gameObject.SetActive(canBuy  && TowerLoadout.IsSelected(TowerPlacer.TowerType.Basic));
+        if (BuySniperTowerButton != null) BuySniperTowerButton.gameObject.SetActive(canBuy && TowerLoadout.IsSelected(TowerPlacer.TowerType.Sniper));
+        if (BuySprayTowerButton != null)  BuySprayTowerButton.gameObject.SetActive(canBuy  && TowerLoadout.IsSelected(TowerPlacer.TowerType.Spray));
+        if (BuyRapidTowerButton != null)  BuyRapidTowerButton.gameObject.SetActive(canBuy  && TowerLoadout.IsSelected(TowerPlacer.TowerType.Rapid));
+        if (BuyMortarTowerButton != null) BuyMortarTowerButton.gameObject.SetActive(canBuy && TowerLoadout.IsSelected(TowerPlacer.TowerType.Mortar));
         if (BuyShieldButton != null)      BuyShieldButton.gameObject.SetActive(canBuy);
 
         if (building)

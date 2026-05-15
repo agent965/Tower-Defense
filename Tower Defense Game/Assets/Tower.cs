@@ -24,6 +24,13 @@ public class Tower : MonoBehaviour
     private float cooldownMultiplier = 1f;
     private readonly Dictionary<BuffTower, (float dmg, float cd)> activeBuffs = new Dictionary<BuffTower, (float, float)>();
 
+    // Bullet visual (set by TowerPlacer after init_Tower). If null, falls back
+    // to a small procedural white square so the tower still functions.
+    private Sprite bulletSprite;
+    private float  bulletScale = 0.2f;
+    private float  barrelOffset = 0f;   // world units in front of the tower
+    private static Sprite fallbackBulletSprite;
+
     void FixedUpdate()
     {
         FaceEnemy();
@@ -54,6 +61,15 @@ public class Tower : MonoBehaviour
 
         // Detect all layers so OverlapCircle finds enemies
         detectionLayer = ~0;
+    }
+
+    // Called by TowerPlacer right after init_Tower. Pass null sprite to keep the
+    // fallback white square.
+    public void SetBullet(Sprite sprite, float scale, float spawnOffset)
+    {
+        bulletSprite = sprite;
+        bulletScale  = scale > 0f ? scale : 0.2f;
+        barrelOffset = spawnOffset;
     }
 
     public double GetSellValue()          { return sVal; }
@@ -203,7 +219,13 @@ public class Tower : MonoBehaviour
 
     private void CreateHomingProjectile(Transform target)
     {
-        GameObject proj = Create2DSquare();
+        // Spawn in front of the tower along the line to the target
+        Vector3 toTarget = (target.position - transform.position);
+        Vector3 spawnPos = transform.position;
+        if (toTarget.sqrMagnitude > 0.0001f)
+            spawnPos += toTarget.normalized * barrelOffset;
+
+        GameObject proj = Create2DSquare(spawnPos);
         proj.name = dbuff;
         HomingProjectile homing = proj.AddComponent<HomingProjectile>();
         homing.speed = (float)prjSpd;
@@ -212,33 +234,33 @@ public class Tower : MonoBehaviour
 
     private void CreateBasicProjectile(float angle)
     {
-        GameObject proj = Create2DSquare();
+        // Spawn in front of the tower along this shot's firing direction
+        float radians = angle * Mathf.Deg2Rad;
+        Vector3 dir = new Vector3(Mathf.Cos(radians), Mathf.Sin(radians), 0f);
+        Vector3 spawnPos = transform.position + dir * barrelOffset;
+
+        GameObject proj = Create2DSquare(spawnPos);
         proj.name = dbuff;
         BasicProjectile basic = proj.AddComponent<BasicProjectile>();
-        basic.SetAttributes(angle, (float)prjSpd, rng, transform.position, dmg * damageMultiplier, prc);
+        basic.SetAttributes(angle, (float)prjSpd, rng, spawnPos, dmg * damageMultiplier, prc);
     }
 
-    private GameObject Create2DSquare()
+    private GameObject Create2DSquare(Vector3 position)
     {
         GameObject proj = new GameObject("Projectile");
 
-        proj.transform.position = new Vector3(transform.position.x, transform.position.y, 0f);
-        proj.transform.localScale = Vector3.one * 0.2f;
+        proj.transform.position = new Vector3(position.x, position.y, 0f);
+        proj.transform.localScale = Vector3.one * bulletScale;
 
         SpriteRenderer sr = proj.AddComponent<SpriteRenderer>();
-        int size = 8;
-        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        Color[] pixels = new Color[size * size];
-        for (int i = 0; i < pixels.Length; i++)
-            pixels[i] = Color.white;
-        tex.SetPixels(pixels);
-        tex.Apply();
-        tex.filterMode = FilterMode.Point;
-        sr.sprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        sr.sprite = bulletSprite != null ? bulletSprite : GetFallbackBulletSprite();
         sr.sortingOrder = 101;
 
         BoxCollider2D bc = proj.AddComponent<BoxCollider2D>();
         bc.isTrigger = true;
+        // Match collider size to the sprite so hit detection is consistent
+        if (sr.sprite != null)
+            bc.size = sr.sprite.bounds.size;
 
         Rigidbody2D rb = proj.AddComponent<Rigidbody2D>();
         rb.gravityScale = 0f;
@@ -246,6 +268,20 @@ public class Tower : MonoBehaviour
         rb.freezeRotation = true;
 
         return proj;
+    }
+
+    private static Sprite GetFallbackBulletSprite()
+    {
+        if (fallbackBulletSprite != null) return fallbackBulletSprite;
+        int size = 8;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color[] pixels = new Color[size * size];
+        for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.white;
+        tex.SetPixels(pixels);
+        tex.Apply();
+        tex.filterMode = FilterMode.Point;
+        fallbackBulletSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        return fallbackBulletSprite;
     }
 
     private SpriteRenderer cachedSR;

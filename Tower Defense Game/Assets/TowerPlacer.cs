@@ -16,6 +16,24 @@ public class TowerPlacer : MonoBehaviour
     public Sprite rapidTowerSprite;
     public Sprite buffTowerSprite;
 
+    [System.Serializable]
+    public class BulletConfig
+    {
+        public Sprite sprite;
+        [Tooltip("World-space scale of the bullet (0.2 ≈ tiny, 1 ≈ matches the sprite's PPU).")]
+        public float  scale = 0.4f;
+        [Tooltip("How far in front of the tower (world units) the bullet spawns. Use this to line up the muzzle with the gun barrel on your tower sprite.")]
+        public float  spawnOffset = 0.4f;
+    }
+
+    [Header("Bullets (drag your sprites in)")]
+    public BulletConfig basicBullet  = new BulletConfig();
+    public BulletConfig sniperBullet = new BulletConfig();
+    public BulletConfig sprayBullet  = new BulletConfig();
+    public BulletConfig rapidBullet  = new BulletConfig();
+    public BulletConfig slowBullet   = new BulletConfig();
+    public BulletConfig buffBullet   = new BulletConfig();
+
     // Tower type definitions
     public enum TowerType { Basic, Sniper, Spray, Rapid, Slow, Mortar, Buff }
 
@@ -158,42 +176,75 @@ public class TowerPlacer : MonoBehaviour
                 towerScript.init_Tower(10, 1, 3f, 8.0, 1.0, cost, cost / 2, 1, true, "none");
                 towerScript.SetUpgrades(new TowerUpgradeData[]
                 {
-                    new TowerUpgradeData { cost = 75,  dmgAdd = 5,  rangeMult = 1.1f, cooldownMult = 1f,    description = "+5 DMG  +10% RNG" },
-                    new TowerUpgradeData { cost = 100, dmgAdd = 10, rangeMult = 1f,   cooldownMult = 0.85f, description = "+10 DMG  -15% CD" },
+                    new TowerUpgradeData { cost = 75,  dmgAdd = 5,  rangeMult = 1.1f,  cooldownMult = 1f,    description = "Sharpened Aim   +5 DMG  +10% RNG" },
+                    new TowerUpgradeData { cost = 100, dmgAdd = 10, rangeMult = 1f,    cooldownMult = 0.85f, description = "Quick Hands   +10 DMG  -15% CD" },
+                    new TowerUpgradeData { cost = 175, dmgAdd = 15, rangeMult = 1.1f,  cooldownMult = 0.9f,  description = "Heavy Rounds   +15 DMG  +10% RNG  -10% CD" },
+                    new TowerUpgradeData { cost = 275, dmgAdd = 25, rangeMult = 1f,    cooldownMult = 0.8f,  description = "Reinforced Barrel   +25 DMG  -20% CD" },
+                    new TowerUpgradeData { cost = 450, dmgAdd = 50, rangeMult = 1.15f, cooldownMult = 0.85f, description = "Elite Operator   +50 DMG  +15% RNG  -15% CD" },
                 });
                 break;
             case TowerType.Sniper:
                 towerScript.init_Tower(50, 3, 6f, 15.0, 3.0, cost, cost / 2, 1, true, "Poison");
                 towerScript.SetUpgrades(new TowerUpgradeData[]
                 {
-                    new TowerUpgradeData { cost = 125, dmgAdd = 40, rangeMult = 1.15f, cooldownMult = 1f, description = "+40 DMG  +15% RNG" },
-                    new TowerUpgradeData { cost = 175, dmgAdd = 60, rangeMult = 1.1f,  cooldownMult = 1f, description = "+60 DMG  +10% RNG" },
+                    new TowerUpgradeData { cost = 125, dmgAdd = 40,  rangeMult = 1.15f, cooldownMult = 1f,    description = "Steady Aim   +40 DMG  +15% RNG" },
+                    new TowerUpgradeData { cost = 175, dmgAdd = 60,  rangeMult = 1.1f,  cooldownMult = 1f,    description = "High-Caliber   +60 DMG  +10% RNG" },
+                    new TowerUpgradeData { cost = 275, dmgAdd = 80,  rangeMult = 1.1f,  cooldownMult = 0.9f,  description = "Match Ammo   +80 DMG  +10% RNG  -10% CD" },
+                    new TowerUpgradeData { cost = 400, dmgAdd = 120, rangeMult = 1f,    cooldownMult = 0.8f,  description = "Marksman   +120 DMG  -20% CD" },
+                    new TowerUpgradeData { cost = 600, dmgAdd = 200, rangeMult = 1.2f,  cooldownMult = 0.85f, description = "One Shot, One Kill   +200 DMG  +20% RNG  -15% CD" },
                 });
                 break;
             case TowerType.Spray:
                 towerScript.init_Tower(5, 1, 2.5f, 6.0, 1.5, cost, cost / 2, 6, false, "none");
                 towerScript.SetUpgrades(new TowerUpgradeData[]
                 {
-                    new TowerUpgradeData { cost = 80,  dmgAdd = 3, rangeMult = 1f,   cooldownMult = 0.9f,  description = "+3 DMG  -10% CD" },
-                    new TowerUpgradeData { cost = 110, dmgAdd = 5, rangeMult = 1.1f, cooldownMult = 0.85f, description = "+5 DMG  +10% RNG  -15% CD" },
+                    new TowerUpgradeData { cost = 80,  dmgAdd = 3,  rangeMult = 1f,    cooldownMult = 0.9f,  description = "Quick Reload   +3 DMG  -10% CD" },
+                    new TowerUpgradeData { cost = 110, dmgAdd = 5,  rangeMult = 1.1f,  cooldownMult = 0.85f, description = "Wider Spread   +5 DMG  +10% RNG  -15% CD" },
+                    new TowerUpgradeData { cost = 200, dmgAdd = 6,  rangeMult = 1.1f,  cooldownMult = 0.85f, description = "Tighter Choke   +6 DMG  +10% RNG  -15% CD" },
+                    new TowerUpgradeData { cost = 300, dmgAdd = 10, rangeMult = 1f,    cooldownMult = 0.8f,  description = "Pump-Action   +10 DMG  -20% CD" },
+                    new TowerUpgradeData { cost = 450, dmgAdd = 18, rangeMult = 1.15f, cooldownMult = 0.85f, description = "Boomstick   +18 DMG  +15% RNG  -15% CD" },
                 });
                 break;
             case TowerType.Rapid:
                 towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "Slow");
                 towerScript.SetUpgrades(new TowerUpgradeData[]
                 {
-                    new TowerUpgradeData { cost = 60, dmgAdd = 10, rangeMult = 1f, cooldownMult = 0.8f,  description = "+10 DMG  -20% CD" },
-                    new TowerUpgradeData { cost = 90, dmgAdd = 10, rangeMult = 1f, cooldownMult = 0.75f, description = "+10 DMG  -25% CD" },
+                    new TowerUpgradeData { cost = 60,  dmgAdd = 10, rangeMult = 1f,    cooldownMult = 0.8f,  description = "Faster Fire   +10 DMG  -20% CD" },
+                    new TowerUpgradeData { cost = 90,  dmgAdd = 10, rangeMult = 1f,    cooldownMult = 0.75f, description = "Hair Trigger   +10 DMG  -25% CD" },
+                    new TowerUpgradeData { cost = 175, dmgAdd = 15, rangeMult = 1.1f,  cooldownMult = 0.85f, description = "Stabilized Aim   +15 DMG  +10% RNG  -15% CD" },
+                    new TowerUpgradeData { cost = 275, dmgAdd = 25, rangeMult = 1f,    cooldownMult = 0.75f, description = "Overclocked   +25 DMG  -25% CD" },
+                    new TowerUpgradeData { cost = 425, dmgAdd = 40, rangeMult = 1.15f, cooldownMult = 0.8f,  description = "Minigun   +40 DMG  +15% RNG  -20% CD" },
                 });
                 break;
             case TowerType.Slow:
                 towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "Slow");
                 towerScript.SetUpgrades(new TowerUpgradeData[]
                 {
-                    new TowerUpgradeData { cost = 70,  dmgAdd = 2, rangeMult = 1.1f, cooldownMult = 1f, description = "+2 DMG  +10% RNG" },
-                    new TowerUpgradeData { cost = 100, dmgAdd = 3, rangeMult = 1.1f, cooldownMult = 1f, description = "+3 DMG  +10% RNG" },
+                    new TowerUpgradeData { cost = 70,  dmgAdd = 2,  rangeMult = 1.1f,  cooldownMult = 1f,    description = "Frost Tips   +2 DMG  +10% RNG" },
+                    new TowerUpgradeData { cost = 100, dmgAdd = 3,  rangeMult = 1.1f,  cooldownMult = 1f,    description = "Cold Snap   +3 DMG  +10% RNG" },
+                    new TowerUpgradeData { cost = 175, dmgAdd = 4,  rangeMult = 1.15f, cooldownMult = 0.9f,  description = "Frost Coils   +4 DMG  +15% RNG  -10% CD" },
+                    new TowerUpgradeData { cost = 275, dmgAdd = 7,  rangeMult = 1f,    cooldownMult = 0.8f,  description = "Cryo Charge   +7 DMG  -20% CD" },
+                    new TowerUpgradeData { cost = 425, dmgAdd = 12, rangeMult = 1.2f,  cooldownMult = 0.85f, description = "Absolute Zero   +12 DMG  +20% RNG  -15% CD" },
                 });
                 break;
+        }
+
+        // Apply the per-type bullet sprite + scale + spawn offset
+        BulletConfig bullet = GetBulletConfig(type);
+        if (bullet != null) towerScript.SetBullet(bullet.sprite, bullet.scale, bullet.spawnOffset);
+    }
+
+    private BulletConfig GetBulletConfig(TowerType type)
+    {
+        switch (type)
+        {
+            case TowerType.Basic:  return basicBullet;
+            case TowerType.Sniper: return sniperBullet;
+            case TowerType.Spray:  return sprayBullet;
+            case TowerType.Rapid:  return rapidBullet;
+            case TowerType.Slow:   return slowBullet;
+            case TowerType.Buff:   return buffBullet;
+            default: return null;
         }
     }
 
@@ -203,8 +254,11 @@ public class TowerPlacer : MonoBehaviour
         mortar.Init(30f, 1.2f, 4f, 2.5f, cost, cost / 2, MortarTower.TowerLevel.Level1);
         mortar.SetUpgrades(new TowerUpgradeData[]
         {
-            new TowerUpgradeData { cost = 130, dmgAdd = 100, rangeMult = 1f,   cooldownMult = 1f,   splashAdd = 0.3f, description = "+100 DMG  +0.3 Splash" },
-            new TowerUpgradeData { cost = 175, dmgAdd = 50,  rangeMult = 1.1f, cooldownMult = 0.8f, splashAdd = 0f,   description = "+50 DMG  +10% RNG  -20% CD" },
+            new TowerUpgradeData { cost = 130, dmgAdd = 100, rangeMult = 1f,    cooldownMult = 1f,    splashAdd = 0.3f, description = "Bigger Boom   +100 DMG  +0.3 Splash" },
+            new TowerUpgradeData { cost = 175, dmgAdd = 50,  rangeMult = 1.1f,  cooldownMult = 0.8f,  splashAdd = 0f,   description = "Rapid Reload   +50 DMG  +10% RNG  -20% CD" },
+            new TowerUpgradeData { cost = 275, dmgAdd = 90,  rangeMult = 1f,    cooldownMult = 0.9f,  splashAdd = 0.3f, description = "Heavy Shell   +90 DMG  +0.3 Splash  -10% CD" },
+            new TowerUpgradeData { cost = 425, dmgAdd = 150, rangeMult = 1.1f,  cooldownMult = 1f,    splashAdd = 0.5f, description = "Cluster Bomb   +150 DMG  +10% RNG  +0.5 Splash" },
+            new TowerUpgradeData { cost = 650, dmgAdd = 250, rangeMult = 1.15f, cooldownMult = 0.85f, splashAdd = 0.4f, description = "Tactical Strike   +250 DMG  +15% RNG  -15% CD  +0.4 Splash" },
         });
     }
 
@@ -215,8 +269,11 @@ public class TowerPlacer : MonoBehaviour
         buff.Init(1.3f, 1.3f, 3f, cost, cost / 2);
         buff.SetUpgrades(new BuffUpgradeData[]
         {
-            new BuffUpgradeData { cost = 100, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "+5% DMG  +5% SPD" },
-            new BuffUpgradeData { cost = 150, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "+5% DMG  +5% SPD" },
+            new BuffUpgradeData { cost = 100, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "Tactical Banner   +5% DMG  +5% SPD" },
+            new BuffUpgradeData { cost = 150, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "Battle Cry   +5% DMG  +5% SPD" },
+            new BuffUpgradeData { cost = 225, dmgMultBonus = 0.10f, cdMultBonus = 0.10f, description = "Battle Standard   +10% DMG  +10% SPD" },
+            new BuffUpgradeData { cost = 350, dmgMultBonus = 0.15f, cdMultBonus = 0.10f, description = "Commander's Order   +15% DMG  +10% SPD" },
+            new BuffUpgradeData { cost = 500, dmgMultBonus = 0.20f, cdMultBonus = 0.15f, description = "Legendary Aura   +20% DMG  +15% SPD" },
         });
     }
 

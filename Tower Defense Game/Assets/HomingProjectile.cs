@@ -60,16 +60,18 @@ public class HomingProjectile : MonoBehaviour
             return;
         }
 
+        // Face direction of travel — snap directly (no RotateTowards), so the
+        // bullet doesn't spin trying to "catch up" to the target angle.
+        // Skip when very close to the target to avoid jitter from atan2 of
+        // near-zero values.
+        if (dir.sqrMagnitude > 0.01f)
+        {
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.Euler(0, 0, angle);
+        }
+
         // Move toward target
         transform.position += (Vector3)dir.normalized * distanceThisFrame;
-
-        // Rotate for visuals
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.RotateTowards(
-            transform.rotation,
-            Quaternion.Euler(0, 0, angle),
-            rotateSpeed * Time.deltaTime
-        );
     }
 
 }
