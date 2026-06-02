@@ -28,11 +28,25 @@ public class Tower : MonoBehaviour
     // to a small procedural white square so the tower still functions.
     private Sprite bulletSprite;
     private float  bulletScale = 0.2f;
-    private float  barrelOffset = 0f;   // world units in front of the tower
+    private float  barrelOffset = 0f;          // along firing direction
+    private float  barrelVerticalOffset = 0f;  // perpendicular to firing direction (sprite's "up")
     private static Sprite fallbackBulletSprite;
+
+    // ── Laser mode (activated when a Sprite is set + tower reaches max upgrade) ──
+    private Sprite laserModeSprite;     // sprite to swap to on final upgrade
+    private Sprite chargeUpSprite;      // sprite shown during the charge-up animation
+    private bool   isLaserMode = false;
+    private bool   isCharging  = false; // disables attacks during charge-up
+    private GameObject laserRoot;
+    private LineRenderer laserGlow, laserMid, laserCore;
+    private GameObject laserImpact;
+    private SpriteRenderer laserImpactSR;
+    private static Sprite laserGlowSprite;
 
     void FixedUpdate()
     {
+        if (isCharging) return;     // freeze attacks during the charge-up animation
+
         FaceEnemy();
 
         timeSinceLastAttack += Time.fixedDeltaTime;
@@ -65,11 +79,25 @@ public class Tower : MonoBehaviour
 
     // Called by TowerPlacer right after init_Tower. Pass null sprite to keep the
     // fallback white square.
-    public void SetBullet(Sprite sprite, float scale, float spawnOffset)
+    public void SetBullet(Sprite sprite, float scale, float spawnOffset, float verticalOffset)
     {
-        bulletSprite = sprite;
-        bulletScale  = scale > 0f ? scale : 0.2f;
-        barrelOffset = spawnOffset;
+        bulletSprite         = sprite;
+        bulletScale          = scale > 0f ? scale : 0.2f;
+        barrelOffset         = spawnOffset;
+        barrelVerticalOffset = verticalOffset;
+    }
+
+    // Optional final-upgrade sprite swap (e.g. Rapid → AidenRapidLaser). When set
+    // AND the tower reaches max upgrade level, it switches to continuous laser mode.
+    public void SetLaserModeSprite(Sprite sprite)
+    {
+        laserModeSprite = sprite;
+    }
+
+    // Optional sprite shown during the charge-up animation before laser mode activates
+    public void SetChargeUpSprite(Sprite sprite)
+    {
+        chargeUpSprite = sprite;
     }
 
     public double GetSellValue()          { return sVal; }
@@ -115,6 +143,10 @@ public class Tower : MonoBehaviour
         sVal  += u.cost * 0.5;
 
         UpgradeEffect.Play(transform);
+
+        // Final upgrade unlocks laser mode if a laser sprite was provided
+        if (IsMaxLevel() && laserModeSprite != null && !isLaserMode)
+            EnableLaserMode();
     }
 
     // Called by BuffTower each tick while this tower is in range
@@ -201,6 +233,20 @@ public class Tower : MonoBehaviour
     private void ReleaseAttack(Transform target)
     {
         timeSinceLastAttack = 0;
+
+        // Laser mode: damage the target directly, no projectile spawn.
+        // The continuous beam visual is driven by Update() each frame.
+        if (isLaserMode)
+        {
+            Enemy e = target.GetComponent<Enemy>();
+            if (e != null)
+            {
+                e.TakeDamage((float)(dmg * damageMultiplier));
+                if (dbuff != "none") e.Debuff(dbuff);
+            }
+            return;
+        }
+
         AudioManager.Instance?.PlayTowerShoot();
 
         if (mShot <= 1)
@@ -218,13 +264,173 @@ public class Tower : MonoBehaviour
         }
     }
 
+    // ── Laser mode ───────────────────────────────────────────────────────
+
+    void Update()
+    {
+        if (isLaserMode) UpdateLaserVisuals();
+    }
+
+    void EnableLaserMode()
+    {
+        // If we have a charge-up sprite, do the DBZ-style power-up sequence first
+        if (chargeUpSprite != null)
+        {
+            StartChargeUp();
+            return;
+        }
+        // Otherwise activate immediately
+        ActivateLaserMode();
+    }
+
+    void StartChargeUp()
+    {
+        isCharging = true;
+
+        // Swap to the charge-up sprite (Goku scream pose)
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null) sr.sprite = chargeUpSprite;
+
+        // Build the aura. onComplete fires when the animation finishes.
+        ChargeUpEffect.Play(transform, 2.5f, () =>
+        {
+            isCharging = false;
+            ActivateLaserMode();
+        });
+    }
+
+    void ActivateLaserMode()
+    {
+        isLaserMode = true;
+
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null) sr.sprite = laserModeSprite;
+
+        BuildLaserVisuals();
+    }
+
+    void BuildLaserVisuals()
+    {
+        laserRoot = new GameObject("LaserVisuals");
+        laserRoot.transform.SetParent(transform, false);
+        laserRoot.transform.localPosition = Vector3.zero;
+
+        // Three layered LineRenderers create a fake-glow beam without needing bloom.
+        laserGlow = MakeLine("LaserGlow", 0.34f, new Color(1f, 0.15f, 0.15f, 0.30f), 49);
+        laserMid  = MakeLine("LaserMid",  0.16f, new Color(1f, 0.35f, 0.35f, 0.85f), 50);
+        laserCore = MakeLine("LaserCore", 0.05f, new Color(1f, 0.95f, 0.9f, 1f),     51);
+
+        // Soft glow dot at the impact point
+        laserImpact = new GameObject("LaserImpact");
+        laserImpact.transform.SetParent(laserRoot.transform, true);
+        laserImpactSR = laserImpact.AddComponent<SpriteRenderer>();
+        laserImpactSR.sprite = GetLaserGlowSprite();
+        laserImpactSR.color  = new Color(1f, 0.4f, 0.3f, 0.95f);
+        laserImpactSR.sortingOrder = 52;
+        laserImpact.SetActive(false);
+    }
+
+    LineRenderer MakeLine(string name, float width, Color color, int sortingOrder)
+    {
+        GameObject obj = new GameObject(name);
+        obj.transform.SetParent(laserRoot.transform);
+        LineRenderer lr = obj.AddComponent<LineRenderer>();
+        lr.positionCount = 2;
+        lr.startWidth    = width;
+        lr.endWidth      = width;
+        lr.material      = new Material(Shader.Find("Sprites/Default"));
+        lr.startColor    = color;
+        lr.endColor      = color;
+        lr.sortingOrder  = sortingOrder;
+        lr.useWorldSpace = true;
+        lr.enabled       = false;
+        return lr;
+    }
+
+    void UpdateLaserVisuals()
+    {
+        Transform target = FindEnemyInRange();
+        if (target == null)
+        {
+            SetLine(laserGlow, false);
+            SetLine(laserMid,  false);
+            SetLine(laserCore, false);
+            if (laserImpact != null) laserImpact.SetActive(false);
+            return;
+        }
+
+        // Start the beam in front of the tower at the gun barrel (forward + vertical offset)
+        Vector3 toTarget = target.position - transform.position;
+        Vector3 start = transform.position
+                      + toTarget.normalized * Mathf.Max(barrelOffset, 0.1f)
+                      + (Vector3)transform.up * barrelVerticalOffset;
+        Vector3 end   = target.position;
+
+        DrawLine(laserGlow, start, end);
+        DrawLine(laserMid,  start, end);
+        DrawLine(laserCore, start, end);
+
+        // Pulse the beam width
+        float pulse = 1f + Mathf.Sin(Time.time * 28f) * 0.20f;
+        laserGlow.startWidth = laserGlow.endWidth = 0.34f * pulse;
+        laserMid.startWidth  = laserMid.endWidth  = 0.16f * pulse;
+
+        // Impact dot pulses + rotates for sparkle
+        if (laserImpact != null)
+        {
+            laserImpact.SetActive(true);
+            laserImpact.transform.position = end;
+            float impactPulse = 1f + Mathf.Sin(Time.time * 32f) * 0.25f;
+            laserImpact.transform.localScale = Vector3.one * 0.55f * impactPulse;
+            laserImpact.transform.Rotate(0f, 0f, 360f * Time.deltaTime);
+        }
+    }
+
+    void SetLine(LineRenderer lr, bool enabled)
+    {
+        if (lr != null) lr.enabled = enabled;
+    }
+
+    void DrawLine(LineRenderer lr, Vector3 a, Vector3 b)
+    {
+        if (lr == null) return;
+        lr.enabled = true;
+        lr.SetPosition(0, a);
+        lr.SetPosition(1, b);
+    }
+
+    static Sprite GetLaserGlowSprite()
+    {
+        if (laserGlowSprite != null) return laserGlowSprite;
+        int size = 32;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color[] px = new Color[size * size];
+        Vector2 c = new Vector2(size / 2f, size / 2f);
+        float maxR = size / 2f - 1f;
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            float d = Vector2.Distance(new Vector2(x, y), c);
+            float a = d > maxR ? 0f : 1f - d / maxR;
+            a *= a;  // sharper falloff
+            px[y * size + x] = new Color(1f, 1f, 1f, a);
+        }
+        tex.SetPixels(px);
+        tex.Apply();
+        tex.filterMode = FilterMode.Bilinear;
+        laserGlowSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        return laserGlowSprite;
+    }
+
     private void CreateHomingProjectile(Transform target)
     {
-        // Spawn in front of the tower along the line to the target
+        // Spawn in front of the tower along the line to the target,
+        // plus a perpendicular offset (tower's "up") for gun height
         Vector3 toTarget = (target.position - transform.position);
         Vector3 spawnPos = transform.position;
         if (toTarget.sqrMagnitude > 0.0001f)
             spawnPos += toTarget.normalized * barrelOffset;
+        spawnPos += transform.up * barrelVerticalOffset;
 
         GameObject proj = Create2DSquare(spawnPos);
         proj.name = dbuff;
@@ -235,10 +441,11 @@ public class Tower : MonoBehaviour
 
     private void CreateBasicProjectile(float angle)
     {
-        // Spawn in front of the tower along this shot's firing direction
+        // Spawn in front of the tower along this shot's firing direction,
+        // plus a perpendicular offset (tower's "up") for gun height
         float radians = angle * Mathf.Deg2Rad;
         Vector3 dir = new Vector3(Mathf.Cos(radians), Mathf.Sin(radians), 0f);
-        Vector3 spawnPos = transform.position + dir * barrelOffset;
+        Vector3 spawnPos = transform.position + dir * barrelOffset + (Vector3)transform.up * barrelVerticalOffset;
 
         GameObject proj = Create2DSquare(spawnPos);
         proj.name = dbuff;
