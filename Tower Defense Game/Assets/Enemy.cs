@@ -158,6 +158,10 @@ public class Enemy : MonoBehaviour
         {
             Die();
         }
+        else
+        {
+            AudioManager.Instance?.PlayEnemyHit();
+        }
     }
 
     void Die()
@@ -166,6 +170,7 @@ public class Enemy : MonoBehaviour
         isDead = true;
 
         OnEnemyDestroyed?.Invoke();
+        AudioManager.Instance?.PlayEnemyDeath();
 
         if (EconomyManager.Instance != null)
             EconomyManager.Instance.AwardKillGold(enemyType, isBoss);

@@ -201,6 +201,7 @@ public class Tower : MonoBehaviour
     private void ReleaseAttack(Transform target)
     {
         timeSinceLastAttack = 0;
+        AudioManager.Instance?.PlayTowerShoot();
 
         if (mShot <= 1)
         {

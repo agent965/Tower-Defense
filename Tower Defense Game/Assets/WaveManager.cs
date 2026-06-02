@@ -105,6 +105,8 @@ public class WaveManager : MonoBehaviour
         // Change game state to wave active
         GameManager.Instance.SetGameState(GameState.WaveActive);
 
+        AudioManager.Instance?.PlayWaveStart();
+
         // Start spawning
         StartCoroutine(SpawnWave());
     }
@@ -178,6 +180,7 @@ public class WaveManager : MonoBehaviour
             bossScript.OnEnemyDestroyed += OnEnemyDestroyed;
         }
 
+        AudioManager.Instance?.PlayBossSpawn();
         Debug.Log($"BOSS spawned for wave {currentWave}!");
     }
 
@@ -211,6 +214,7 @@ public class WaveManager : MonoBehaviour
         Debug.Log($"Wave {currentWave} Complete!");
 
         WaveComplete?.Invoke(currentWave);
+        AudioManager.Instance?.PlayWaveComplete();
 
         if (currentWave >= totalWaves)
         {
