@@ -16,6 +16,12 @@ public class TowerPlacer : MonoBehaviour
     public Sprite rapidTowerSprite;
     public Sprite buffTowerSprite;
 
+    [Header("Final-Upgrade Skins")]
+    [Tooltip("Sprite the Rapid tower swaps to at max level — also activates continuous laser mode.")]
+    public Sprite rapidLaserSprite;
+    [Tooltip("Sprite shown during the DBZ-style charge-up animation before swapping to the laser sprite.")]
+    public Sprite rapidChargeUpSprite;
+
     [System.Serializable]
     public class BulletConfig
     {
@@ -24,6 +30,8 @@ public class TowerPlacer : MonoBehaviour
         public float  scale = 0.4f;
         [Tooltip("How far in front of the tower (world units) the bullet spawns. Use this to line up the muzzle with the gun barrel on your tower sprite.")]
         public float  spawnOffset = 0.4f;
+        [Tooltip("Perpendicular offset along the tower's 'up' direction. Use this if the gun barrel is above/below the sprite's center. Positive = above the firing line, negative = below.")]
+        public float  verticalOffset = 0f;
     }
 
     [Header("Bullets (drag your sprites in)")]
@@ -213,8 +221,10 @@ public class TowerPlacer : MonoBehaviour
                     new TowerUpgradeData { cost = 90,  dmgAdd = 10, rangeMult = 1f,    cooldownMult = 0.75f, description = "Hair Trigger   +10 DMG  -25% CD" },
                     new TowerUpgradeData { cost = 175, dmgAdd = 15, rangeMult = 1.1f,  cooldownMult = 0.85f, description = "Stabilized Aim   +15 DMG  +10% RNG  -15% CD" },
                     new TowerUpgradeData { cost = 275, dmgAdd = 25, rangeMult = 1f,    cooldownMult = 0.75f, description = "Overclocked   +25 DMG  -25% CD" },
-                    new TowerUpgradeData { cost = 425, dmgAdd = 40, rangeMult = 1.15f, cooldownMult = 0.8f,  description = "Minigun   +40 DMG  +15% RNG  -20% CD" },
+                    new TowerUpgradeData { cost = 1, dmgAdd = 60, rangeMult = 1.2f,  cooldownMult = 0.7f,  description = "LASER TROOPER   +60 DMG  +20% RNG  -30% CD  CONTINUOUS BEAM" },
                 });
+                towerScript.SetLaserModeSprite(rapidLaserSprite);
+                towerScript.SetChargeUpSprite(rapidChargeUpSprite);
                 break;
             case TowerType.Slow:
                 towerScript.init_Tower(4, 1, 2.5f, 10.0, 0.3, cost, cost / 2, 1, true, "Slow");
@@ -229,9 +239,9 @@ public class TowerPlacer : MonoBehaviour
                 break;
         }
 
-        // Apply the per-type bullet sprite + scale + spawn offset
+        // Apply the per-type bullet sprite + scale + offsets
         BulletConfig bullet = GetBulletConfig(type);
-        if (bullet != null) towerScript.SetBullet(bullet.sprite, bullet.scale, bullet.spawnOffset);
+        if (bullet != null) towerScript.SetBullet(bullet.sprite, bullet.scale, bullet.spawnOffset, bullet.verticalOffset);
     }
 
     private BulletConfig GetBulletConfig(TowerType type)

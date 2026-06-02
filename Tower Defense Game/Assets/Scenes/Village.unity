@@ -3991,30 +3991,38 @@ MonoBehaviour:
   sprayTowerSprite: {fileID: -7989006520667686032, guid: 2315a538cfff4f04a95ea02e21e49e7c, type: 3}
   rapidTowerSprite: {fileID: -9181417348902859373, guid: 93c618f5a3fbaba4799a8d5cafc9d767, type: 3}
   buffTowerSprite: {fileID: -2895157278119961449, guid: 46dc05c3e2ea6c143a735b185df2e2c9, type: 3}
+  rapidLaserSprite: {fileID: 3632281018021426003, guid: c5130f2a6e0010441ad1488c1d9c31f9, type: 3}
+  rapidChargeUpSprite: {fileID: -8146357283231308008, guid: cb2fd282e232856429b158f74f97e973, type: 3}
   basicBullet:
     sprite: {fileID: 7313497487279401294, guid: 97249bb0a8604ef478cef0eccee28715, type: 3}
     scale: 0.2
     spawnOffset: 1
+    verticalOffset: 0
   sniperBullet:
     sprite: {fileID: 7313497487279401294, guid: 97249bb0a8604ef478cef0eccee28715, type: 3}
     scale: 0.2
     spawnOffset: 1
+    verticalOffset: 0
   sprayBullet:
     sprite: {fileID: 7313497487279401294, guid: 97249bb0a8604ef478cef0eccee28715, type: 3}
     scale: 0.2
     spawnOffset: 0.6
+    verticalOffset: 0
   rapidBullet:
     sprite: {fileID: 7313497487279401294, guid: 97249bb0a8604ef478cef0eccee28715, type: 3}
     scale: 0.2
-    spawnOffset: 1
+    spawnOffset: 0.8
+    verticalOffset: -0.12
   slowBullet:
     sprite: {fileID: 0}
     scale: 0.4
     spawnOffset: 0.4
+    verticalOffset: 0
   buffBullet:
     sprite: {fileID: 0}
     scale: 0.4
     spawnOffset: 0.4
+    verticalOffset: 0
 --- !u!4 &1798135724
 Transform:
   m_ObjectHideFlags: 0
@@ -4203,7 +4211,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaveManager
   currentWave: 0
-  totalWaves: 10
+  totalWaves: 50
   enemiesPerWave: 5
   enemiesIncreasePerWave: 2
   timeBetweenSpawns: 1.3
