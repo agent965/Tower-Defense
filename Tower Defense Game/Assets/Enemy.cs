@@ -19,6 +19,8 @@ public class Enemy : MonoBehaviour
     private double debuffTimer = 0;
     private float slowFactor = 1f;
     private float slowDuration = 0f;
+
+    private bool vulnurable = true;
     
     // Event for when enemy is destroyed
     public delegate void OnEnemyDestroyedDelegate();
@@ -50,6 +52,7 @@ public class Enemy : MonoBehaviour
 
     void Start()
     {
+        vulnurable = true;
         debuffed = "none";
         currentHP = maxHP;
         // Initialize here as a fallback for enemies not spawned through WaveManager
@@ -103,6 +106,19 @@ public class Enemy : MonoBehaviour
                 TakeDamage(10);
             }
         }
+        else if (debuffed == "Petrify")
+        {
+            vulnurable = false;
+            debuffTimer += 0.02;
+            if (debuffTimer > 3)
+            {
+                debuffTimer = 0;
+
+                debuffed = "none";
+                vulnurable = true;
+                
+            }
+        }
     }
     void Move()
     {
@@ -138,6 +154,7 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
+        if (!vulnurable) return;
         if (isDead) return;
 
         currentHP -= damage;
@@ -239,6 +256,13 @@ public class Enemy : MonoBehaviour
             slowDuration = 3f;
             DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Poison, 3f);
         }
+        else if (db == "Petrify")
+        {
+            slowFactor = 0.01f;
+            slowDuration = 3f;
+            DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Petrify, 3f);
+        }
+
     }
 }
 
