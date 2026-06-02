@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class DebuffParticles : MonoBehaviour
 {
-    public enum Mode { None, Slow, Poison }
+    public enum Mode { None, Slow, Poison, Petrify }
 
     private Mode currentMode = Mode.None;
     private float remaining;
@@ -10,6 +10,7 @@ public class DebuffParticles : MonoBehaviour
 
     private static Sprite cachedSnowflake;
     private static Sprite cachedBubble;
+    private static Sprite cachedPetrify;
 
     public static void Apply(GameObject enemy, Mode mode, float duration)
     {
@@ -64,6 +65,16 @@ public class DebuffParticles : MonoBehaviour
         else if (currentMode == Mode.Poison)
         {
             sr.sprite = GetBubbleSprite();
+            sr.color = new Color(0.55f, 1f, 0.2f, 1f);
+            particle.lifetime = 0.7f;
+            particle.velocity = new Vector3(Random.Range(-0.15f, 0.15f), Random.Range(0.5f, 0.9f), 0f);
+            particle.wobble = true;
+            particle.startScale = 0.35f;
+            particle.endScale = 0.65f;
+        }
+        else if (currentMode == Mode.Petrify)
+        {
+            sr.sprite = GetPetrifySprite();
             sr.color = new Color(0.55f, 1f, 0.2f, 1f);
             particle.lifetime = 0.7f;
             particle.velocity = new Vector3(Random.Range(-0.15f, 0.15f), Random.Range(0.5f, 0.9f), 0f);
@@ -140,6 +151,41 @@ public class DebuffParticles : MonoBehaviour
         cachedBubble = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
         return cachedBubble;
     }
+    static Sprite GetPetrifySprite()
+    {
+        if (cachedPetrify != null) return cachedPetrify;
+
+        int size = 32;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color[] px = new Color[size * size];
+        Vector2 c = new Vector2(size / 2f, size / 2f);
+        float maxR = size / 2f - 1f;
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float d = Vector2.Distance(new Vector2(x, y), c);
+                if (d > maxR)
+                    px[y * size + x] = Color.clear;
+                else
+                {
+                    // Soft falloff — bright center, fading edges
+                    float a = 1f - (d / maxR);
+                    a = a * a;
+                    px[y * size + x] = new Color(0.45f, 0.55f, 0.45f, a);
+                }
+            }
+        }
+
+        tex.SetPixels(px);
+        tex.Apply();
+        tex.filterMode = FilterMode.Bilinear;
+        cachedPetrify = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
+        return cachedPetrify;
+    }
+
+
 }
 
 public class DebuffParticle : MonoBehaviour
