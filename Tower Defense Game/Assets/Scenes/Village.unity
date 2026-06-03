@@ -3993,6 +3993,8 @@ MonoBehaviour:
   buffTowerSprite: {fileID: -2895157278119961449, guid: 46dc05c3e2ea6c143a735b185df2e2c9, type: 3}
   rapidLaserSprite: {fileID: 3632281018021426003, guid: c5130f2a6e0010441ad1488c1d9c31f9, type: 3}
   rapidChargeUpSprite: {fileID: -8146357283231308008, guid: cb2fd282e232856429b158f74f97e973, type: 3}
+  buffFinalSprite: {fileID: -7618259063612073080, guid: 9927d9981b393f546be1e45e05df89da, type: 3}
+  buffStaffPulseOffset: {x: 0, y: 1}
   basicBullet:
     sprite: {fileID: 7313497487279401294, guid: 97249bb0a8604ef478cef0eccee28715, type: 3}
     scale: 0.2
