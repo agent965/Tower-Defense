@@ -21,6 +21,10 @@ public class TowerPlacer : MonoBehaviour
     public Sprite rapidLaserSprite;
     [Tooltip("Sprite shown during the DBZ-style charge-up animation before swapping to the laser sprite.")]
     public Sprite rapidChargeUpSprite;
+    [Tooltip("Sprite the Buff tower swaps to at max level (purple/gold staff form). No charge sprite needed — the tower tints purple/gold during charge.")]
+    public Sprite buffFinalSprite;
+    [Tooltip("World-space offset from the Buff tower's center to the tip of its staff. Pulses emanate from this point after the final upgrade.")]
+    public Vector2 buffStaffPulseOffset = new Vector2(0f, 0.5f);
 
     [System.Serializable]
     public class BulletConfig
@@ -279,12 +283,14 @@ public class TowerPlacer : MonoBehaviour
         buff.Init(1.3f, 1.3f, 3f, cost, cost / 2);
         buff.SetUpgrades(new BuffUpgradeData[]
         {
-            new BuffUpgradeData { cost = 100, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "Tactical Banner   +5% DMG  +5% SPD" },
-            new BuffUpgradeData { cost = 150, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "Battle Cry   +5% DMG  +5% SPD" },
-            new BuffUpgradeData { cost = 225, dmgMultBonus = 0.10f, cdMultBonus = 0.10f, description = "Battle Standard   +10% DMG  +10% SPD" },
-            new BuffUpgradeData { cost = 350, dmgMultBonus = 0.15f, cdMultBonus = 0.10f, description = "Commander's Order   +15% DMG  +10% SPD" },
-            new BuffUpgradeData { cost = 500, dmgMultBonus = 0.20f, cdMultBonus = 0.15f, description = "Legendary Aura   +20% DMG  +15% SPD" },
+            new BuffUpgradeData { cost = 1, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "Tactical Banner   +5% DMG  +5% SPD" },
+            new BuffUpgradeData { cost = 1, dmgMultBonus = 0.05f, cdMultBonus = 0.05f, description = "Battle Cry   +5% DMG  +5% SPD" },
+            new BuffUpgradeData { cost = 1, dmgMultBonus = 0.10f, cdMultBonus = 0.10f, description = "Battle Standard   +10% DMG  +10% SPD" },
+            new BuffUpgradeData { cost = 1, dmgMultBonus = 0.15f, cdMultBonus = 0.10f, description = "Commander's Order   +15% DMG  +10% SPD" },
+            new BuffUpgradeData { cost = 1, dmgMultBonus = 0.25f, cdMultBonus = 0.20f, description = "ARCHDRUID   +25% DMG  +20% SPD  STAFF AWAKENED" },
         });
+        buff.SetFinalSprite(buffFinalSprite);
+        buff.SetStaffPulseOffset(buffStaffPulseOffset);
     }
 
     // --- Public API for UI buttons ---

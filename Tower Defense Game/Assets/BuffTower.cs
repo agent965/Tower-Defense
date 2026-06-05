@@ -12,6 +12,11 @@ public class BuffTower : MonoBehaviour
     private HashSet<Tower> buffedTowers = new HashSet<Tower>();
     private HashSet<MortarTower> buffedMortars = new HashSet<MortarTower>();
 
+    // Final-form sprite swap on max upgrade (e.g. archdruid staff)
+    private Sprite finalSprite;
+    private bool   isCharging = false;
+    private Vector2 staffPulseOffset = new Vector2(0f, 0.5f);
+
     public void Init(float dmgMult, float cdMult, float rng, double bVal, double sVal)
     {
         damageMultiplier = dmgMult;
@@ -19,6 +24,20 @@ public class BuffTower : MonoBehaviour
         range = rng;
         buyValue = bVal;
         sellValue = sVal;
+    }
+
+    // Optional: when set AND the tower hits max upgrade level, plays a nature-themed
+    // charge-up animation, then swaps the sprite to this one.
+    public void SetFinalSprite(Sprite sprite)
+    {
+        finalSprite = sprite;
+    }
+
+    // World-space offset (x,y) from the tower center to the staff tip — used as
+    // the origin for the periodic pulses in ArchdruidAura.
+    public void SetStaffPulseOffset(Vector2 offset)
+    {
+        staffPulseOffset = offset;
     }
 
     public double GetSellValue()  => sellValue;
@@ -103,6 +122,27 @@ public class BuffTower : MonoBehaviour
             if (m != null) m.ApplyBuff(this, damageMultiplier, cooldownMultiplier);
 
         UpgradeEffect.Play(transform);
+
+        // Final upgrade triggers the nature charge-up + sprite swap
+        if (IsMaxLevel() && finalSprite != null && !isCharging)
+            StartFinalChargeUp();
+    }
+
+    void StartFinalChargeUp()
+    {
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr == null) return;
+
+        isCharging = true;
+        NatureChargeUpEffect.Play(transform, sr, 2.5f, () =>
+        {
+            sr.sprite  = finalSprite;
+            isCharging = false;
+
+            // Attach the persistent ARCHDRUID aura
+            ArchdruidAura aura = gameObject.AddComponent<ArchdruidAura>();
+            aura.staffPulseOffset = staffPulseOffset;
+        });
     }
 }
 
