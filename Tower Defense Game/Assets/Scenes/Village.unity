@@ -1786,6 +1786,7 @@ Transform:
   - {fileID: 815978404}
   - {fileID: 2060569841}
   - {fileID: 1656115076}
+  - {fileID: 2026999804}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &673102225
@@ -4166,6 +4167,66 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2026999803
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2026999804}
+  - component: {fileID: 2026999805}
+  m_Layer: 0
+  m_Name: Audio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2026999804
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2026999803}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 671453990}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2026999805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2026999803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66457ed92247d2a46b29e37cf03fcba0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioManager
+  towerShoot: {fileID: 8300000, guid: 4f05c35922d2d014e9a37eff0c67ec80, type: 3}
+  towerPlace: {fileID: 8300000, guid: 4384278f083d9b840ab5d2f3e55dae8d, type: 3}
+  towerSell: {fileID: 8300000, guid: e98fdedb8ed94184cb1bd253afa6597a, type: 3}
+  towerUpgrade: {fileID: 8300000, guid: 5e6655d5544ab124db345ea2fc380894, type: 3}
+  enemyHit: {fileID: 8300000, guid: f469008755c0bc2499c3e675b7c12d0d, type: 3}
+  enemyDeath: {fileID: 8300000, guid: 253b500971fb0ec419549cda3abc615d, type: 3}
+  enemyReachedEnd: {fileID: 8300000, guid: b2fc72c72442327458a073c52bb47d3d, type: 3}
+  waveStart: {fileID: 8300000, guid: d46f5e0a30f54d04eb4f354f9fe70c33, type: 3}
+  waveComplete: {fileID: 8300000, guid: 5c4665af46a8d3f4591963c976b8098f, type: 3}
+  bossSpawn: {fileID: 8300000, guid: 135f054b6ee290a4d810cdf3a52a7bf2, type: 3}
+  buttonClick: {fileID: 8300000, guid: 2180b8427e3c84e4c9fe15725d898827, type: 3}
+  purchaseFailed: {fileID: 0}
+  victory: {fileID: 8300000, guid: 5fece538da9d72c44a6a9eb592641a14, type: 3}
+  defeat: {fileID: 8300000, guid: a2f3de43a5a861d40b4de1845b02ddc6, type: 3}
+  masterVolume: 1
+  sfxVolume: 1
 --- !u!1 &2060569840
 GameObject:
   m_ObjectHideFlags: 0
