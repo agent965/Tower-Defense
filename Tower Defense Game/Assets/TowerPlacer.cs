@@ -265,7 +265,7 @@ public class TowerPlacer : MonoBehaviour
     private void InitMortarTower(MortarTower mortar)
     {
         int cost = GetTowerCost(TowerType.Mortar);
-        mortar.Init(30f, 1.2f, 4f, 2.5f, cost, cost / 2, MortarTower.TowerLevel.Level1);
+        mortar.Init(30f, 1.2f, 4f, 5f, cost, cost / 2, MortarTower.TowerLevel.Level1);
         mortar.SetUpgrades(new TowerUpgradeData[]
         {
             new TowerUpgradeData { cost = 130, dmgAdd = 100, rangeMult = 1f,    cooldownMult = 1f,    splashAdd = 0.3f, description = "Bigger Boom   +100 DMG  +0.3 Splash" },

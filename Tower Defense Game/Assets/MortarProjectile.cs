@@ -21,18 +21,20 @@ public class MortarProjectile : MonoBehaviour
     private float timer;
     private float damage;
     private float splashRadius;
+    private float petrifyDuration;
 
     private SpriteRenderer spriteRenderer;
     private bool hasLanded = false;
     private bool initialized = false;
 
     // ── Called by MortarTower before the object is active ─────────────────
-    public void Initialize(Vector3 target, float dmg, float splash)
+    public void Initialize(Vector3 target, float dmg, float splash, float petrify = 0f)
     {
-        targetPosition = target;
-        damage         = dmg;
-        splashRadius   = splash;
-        initialized    = true;
+        targetPosition  = target;
+        damage          = dmg;
+        splashRadius    = splash;
+        petrifyDuration = petrify;
+        initialized     = true;
     }
 
     // ── Lifecycle ──────────────────────────────────────────────────────────
@@ -107,7 +109,11 @@ public class MortarProjectile : MonoBehaviour
             {
                 Enemy enemy = hit.GetComponent<Enemy>();
                 if (enemy != null)
+                {
                     enemy.TakeDamage(damage);
+                    if (petrifyDuration > 0f)
+                        enemy.Debuff("Petrify", petrifyDuration);
+                }
             }
         }
     }

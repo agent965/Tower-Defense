@@ -85,6 +85,7 @@ public class Enemy : MonoBehaviour
                 slowFactor = 1f;
                 debuffed = "none";
                 debuffTimer = 0;
+                vulnurable = true;
             }
         }
 
@@ -106,20 +107,9 @@ public class Enemy : MonoBehaviour
                 TakeDamage(10);
             }
         }
-        else if (debuffed == "Petrify")
-        {
-            vulnurable = false;
-            debuffTimer += 0.02;
-            if (debuffTimer > 3)
-            {
-                debuffTimer = 0;
-
-                debuffed = "none";
-                vulnurable = true;
-                
-            }
-        }
     }
+
+    public bool IsPetrified() => debuffed == "Petrify";
     void Move()
     {
         if (waypoints == null || waypoints.Length == 0) return;
@@ -247,25 +237,26 @@ public class Enemy : MonoBehaviour
         Destroy(gameObject);
     }
 
-    public void Debuff(string db)
+    public void Debuff(string db, float duration = 3f)
     {
         debuffed = db;
         if (db == "Slow")
         {
             slowFactor = 0.5f;
-            slowDuration = 3f;
-            DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Slow, 3f);
+            slowDuration = duration;
+            DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Slow, duration);
         }
         else if (db == "Poison")
         {
-            slowDuration = 3f;
-            DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Poison, 3f);
+            slowDuration = duration;
+            DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Poison, duration);
         }
         else if (db == "Petrify")
         {
             slowFactor = 0.01f;
-            slowDuration = 3f;
-            DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Petrify, 3f);
+            slowDuration = duration;
+            vulnurable = false;
+            DebuffParticles.Apply(gameObject, DebuffParticles.Mode.Petrify, duration);
         }
 
     }

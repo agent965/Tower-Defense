@@ -30,7 +30,7 @@ public class MortarTower : MonoBehaviour
     public float idleFrameRate   = 0.2f;
     public float shootFrameRate  = 0.1f;
     public float reloadFrameRate = 0.15f;
-    public float attackCooldown  = 2f;
+    public float attackCooldown  = 5f;
 
     [Header("Sprite Size")]
     [Tooltip("Pixels per unit for auto-loaded sprites. Increase to make sprites smaller.")]
@@ -221,6 +221,7 @@ public class MortarTower : MonoBehaviour
             if (!hit.CompareTag(targetTag)) continue;
             Enemy e = hit.GetComponent<Enemy>();
             if (e == null) continue;
+            if (e.IsPetrified()) continue;
 
             switch (targetMode)
             {
@@ -302,7 +303,8 @@ public class MortarTower : MonoBehaviour
             sr.sortingOrder = 101;
         }
 
-        mp.Initialize(target, damage * damageMultiplier, splashRadius);
+        float effectiveCooldown = attackCooldown / cooldownMultiplier;
+        mp.Initialize(target, damage * damageMultiplier, splashRadius, effectiveCooldown * 0.5f);
     }
 
     // ── Animation helpers ──────────────────────────────────────────────────

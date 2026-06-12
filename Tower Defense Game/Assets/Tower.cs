@@ -188,6 +188,7 @@ public class Tower : MonoBehaviour
             if (!hit.CompareTag(targetTag)) continue;
             Enemy e = hit.GetComponent<Enemy>();
             if (e == null) continue;
+            if (e.IsPetrified()) continue;
 
             switch (targetMode)
             {
